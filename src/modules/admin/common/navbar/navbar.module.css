@@ -1,0 +1,294 @@
+/* Base Styles */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: white;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  height: 124px;
+  width: 100%;
+}
+
+.menuIcon {
+  cursor: pointer;
+  margin-right: 20px;
+}
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #3366ff;
+  padding-left: 60px;
+  white-space: nowrap; /* Prevents text from wrapping in smaller screens */
+}
+
+.searchContainer {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  margin-left: 0px;
+  background-color: #f9fafb;
+  padding: 10px;
+  border-radius: 50px;
+  border: 1px solid #e0e0e0;
+  max-width: 492px;
+  height: 44px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  min-width: 200px; /* Ensures the search bar doesn't shrink too much */
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 10px;
+  border-radius: 50px;
+  font-size: 16px;
+  background-color: transparent;
+  color: #4a5568;
+  min-width: 0; /* Important to allow flex shrinking */
+}
+
+.searchIcon {
+  margin-right: 10px;
+}
+
+.filterButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.filterIcon {
+  width: 24px;
+  height: 24px;
+  margin-left: 10px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  padding-right: 64px;
+}
+
+.settingsButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%; /* Make it circular */
+  width: 40px; /* Diameter */
+  height: 40px; /* Diameter */
+  cursor: pointer;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  margin-right: 20px;
+}
+
+.settingsIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.signupButton {
+  background-color: #3366ff;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.searchContainer img {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  color: #4a5568; /* Ensure it matches the icon color */
+}
+
+/* Responsive Design */
+
+/* Extra Large Screens (Desktops > 1440px) */
+@media (min-width: 1440px) {
+  .navbar {
+    padding: 20px 40px;
+  }
+
+  .logo {
+    font-size: 28px;
+    padding-left: 80px;
+  }
+
+  .searchContainer {
+    max-width: 600px;
+  }
+
+  .actions {
+    padding-right: 80px;
+  }
+}
+
+/* Large Screens (Desktops > 1024px) */
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .navbar {
+    padding: 10px 30px;
+  }
+
+  .logo {
+    font-size: 26px;
+  }
+
+  .searchContainer {
+    max-width: 500px;
+  }
+
+  .actions {
+    padding-right: 64px;
+  }
+}
+
+/* Tablets and small desktops (768px to 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .navbar {
+    flex-direction: row;
+    justify-content: space-between;
+    height: auto;
+    padding: 15px;
+  }
+
+  .logo {
+    font-size: 22px;
+    padding-left: 20px;
+  }
+
+  .searchContainer {
+    max-width: 70%;
+    margin-left: 0;
+  }
+
+  .actions {
+    padding-right: 20px;
+  }
+
+  .signupButton {
+    padding: 6px 14px;
+  }
+}
+
+/* Medium Mobile (481px to 767px) */
+@media (min-width: 481px) and (max-width: 767px) {
+  .navbar {
+    flex-direction: column;
+    height: auto;
+    padding: 10px;
+  }
+
+  .logo {
+    font-size: 20px;
+    padding-left: 0;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .searchContainer {
+    max-width: 100%;
+    margin-bottom: 10px;
+    justify-content: center;
+  }
+
+  .actions {
+    padding-right: 0;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .signupButton {
+    padding: 6px 12px;
+  }
+}
+
+/* Small Mobile (Portrait mode, 480px and below) */
+@media (max-width: 480px) {
+  .navbar {
+    flex-direction: column;
+    height: auto;
+    padding: 10px;
+  }
+
+  .logo {
+    font-size: 18px;
+    padding-left: 0;
+    text-align: center;
+  }
+
+  .searchContainer {
+    max-width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+
+  .searchInput {
+    font-size: 14px;
+  }
+
+  .searchIcon,
+  .filterIcon,
+  .settingsIcon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .signupButton {
+    padding: 4px 10px;
+    font-size: 14px;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: center;
+    padding-right: 0;
+  }
+
+  .settingsButton {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+}
+
+/* Extra Small Mobile (320px and below) */
+@media (max-width: 320px) {
+  .navbar {
+    padding: 8px;
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+
+  .searchContainer {
+    padding: 6px;
+    height: 36px;
+  }
+
+  .searchInput {
+    font-size: 12px;
+  }
+
+  .signupButton {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  .settingsButton {
+    width: 36px;
+    height: 36px;
+  }
+
+  .settingsIcon {
+    width: 16px;
+    height: 16px;
+  }
+}

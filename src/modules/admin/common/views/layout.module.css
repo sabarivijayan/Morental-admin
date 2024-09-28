@@ -1,0 +1,14 @@
+.container {
+    display: flex;
+  }
+  
+  .content {
+    flex: 1;
+    transition: margin-left 0.3s ease;
+    margin-left: 0;
+  }
+  
+  .shrink {
+    margin-left: 250px;
+  }
+  

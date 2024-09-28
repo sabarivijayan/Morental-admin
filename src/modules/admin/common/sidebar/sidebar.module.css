@@ -1,0 +1,96 @@
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-color: #f8f9fc;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: -250px; /* Initially hidden */
+  transition: left 0.3s ease-in-out; /* Smooth slide in/out */
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.visible {
+  left: 0; /* Slide in when visible */
+}
+
+.closeButton {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.closeButton img {
+  width: 20px;
+  height: 20px;
+}
+
+.menu {
+  margin-top: 40px;
+  flex-grow: 1; /* Makes the menu area grow */
+}
+
+.menuHeader {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #c4c4c4;
+  margin-bottom: 20px;
+}
+
+.menuList {
+  list-style: none;
+  padding: 0;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  padding: 15px 0;
+  color: #7d8da6;
+  cursor: pointer;
+  transition: background-color 0.3s ease, padding-left 0.3s ease;
+}
+
+.menuItem:hover {
+  background-color: #ebeff8;
+  border-radius: 5px;
+  padding-left: 15px;
+}
+
+.menuItem img {
+  margin-right: 15px;
+}
+
+.iconWrapper {
+  margin-right: 15px;
+}
+
+.logout {
+  display: flex;
+  align-items: center;
+  margin-top: 30px; /* Added margin from other items */
+  padding: 15px 0;
+  color: #7d8da6;
+  cursor: pointer;
+  transition: background-color 0.3s ease, padding-left 0.3s ease;
+}
+
+.logout img {
+  margin-right: 15px;
+}
+
+.logout:hover {
+  background-color: #ebeff8;
+  border-radius: 5px;
+  padding-left: 15px;
+}
+
+/* Optional divider if you want to separate logout visually */
+.divider {
+  margin: 20px 0;
+  border-top: 1px solid #e0e0e0;
+}
