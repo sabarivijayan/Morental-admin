@@ -14,9 +14,6 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         <Image src="/icons/menu.svg" alt="Menu" width={24} height={24} />
       </div>
       <div className={styles.logo}>MORENT</div>
-      <div className={styles.actions}>
-        <button className={styles.signupButton}>Sign up</button>
-      </div>
     </nav>
   );
 };
