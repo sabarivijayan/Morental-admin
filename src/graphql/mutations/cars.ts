@@ -4,11 +4,11 @@ export const ADD_CARS = gql`
     mutation AddCar(
         $name: String!
         $type: String!
-        $numberOfSeats: Int!
+        $numberOfSeats: String!
         $fuelType: String!
         $transmissionType: String!
         $description: String!
-        $quantity: Int!
+        $quantity: String!
         $manufacturerId: String!
         $primaryImage: Upload!
         $secondaryImages: [Upload!]!
@@ -36,8 +36,8 @@ export const ADD_CARS = gql`
             description
             quantity
             manufacturerId
-            primaryImage
-            secondaryImages
+            primaryImageUrl
+            secondaryImagesUrls
         }
     }
 `;

@@ -1,162 +1,244 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { Upload, Button } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
-import { Manufacturer } from '@/interfaces/manufacturer'; // Import the interface
+
+import React, { useRef, useState } from "react";
+import { useQuery, useMutation } from "@apollo/client";
+import { GET_MANUFACTURERS } from "@/graphql/queries/manufacture";
+import { ADD_CARS } from "@/graphql/mutations/cars";
+import { Input, Button, Select, Form, Radio, Upload, message } from "antd";
+import { Manufacturer, FormData, GetManufacturersResponse } from "@/interfaces/manufacturer";
+import Swal from "sweetalert2";
+import { v4 as uuidv4 } from "uuid";
 import styles from './add-cars.module.css';
 
-const AddCars: React.FC = () => {
-  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
-  const [carModel, setCarModel] = useState('');
-  const [carType, setCarType] = useState('');
-  const [seats, setSeats] = useState<number>(0);
-  const [fuelType, setFuelType] = useState('');
-  const [transmissionType, setTransmissionType] = useState('');
-  const [description, setDescription] = useState('');
-  const [primaryImage, setPrimaryImage] = useState<any>(null);
-  const [secondaryImages, setSecondaryImages] = useState<any[]>([]);
+const { Option } = Select;
 
-  useEffect(() => {
-    // Fetch manufacturers from an API or your data source
-    setManufacturers([
-      { id: 1, name: 'Toyota' },
-      { id: 2, name: 'Honda' },
-      { id: 3, name: 'Ford' }
-    ]);
-  }, []);
+const AddCars = () => {
+  const [form] = Form.useForm();
+  const { loading: loadingManufacturers, error: errorManufacturers, data: manufacturersData } = useQuery<GetManufacturersResponse>(GET_MANUFACTURERS);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    type: '',
+    description: '',
+    transmissionType: '',
+    numberOfSeats: '',
+    fuelType: '',
+    primaryImage: null,
+    secondaryImages: [],
+    quantity: '',
+    manufacturerId: '',
+  });
 
-  const handlePrimaryImageChange = ({ file }: any) => {
-    setPrimaryImage(file);
+  const [addCar] = useMutation(ADD_CARS, {
+    onCompleted: () => {
+      setFormData({
+        name: "",
+        type: "",
+        description: "",
+        transmissionType: "",
+        numberOfSeats: "",
+        fuelType: "",
+        primaryImage: null,
+        secondaryImages: [],
+        quantity: "",
+        manufacturerId: "",
+      });
+      Swal.fire("Success!", "Car has been added successfully.", "success");
+      form.resetFields();
+    },
+    onError: (error) => {
+      Swal.fire("Error!", error.message, "error");
+    },
+  });
+
+  const handleChange = (value: any, fieldName: string) => {
+    setFormData(prev => ({ ...prev, [fieldName]: value }));
   };
 
-  const handleSecondaryImagesChange = ({ fileList }: any) => {
-    if (fileList.length <= 3) {
-      setSecondaryImages(fileList);
+  const handleImageChange = (file: File, fieldName: string) => {
+    const fileName = file.name;
+  
+    if (fieldName === 'primaryImage') {
+      setFormData(prev => ({
+        ...prev,
+        primaryImage: {
+          id: uuidv4(),
+          file: file,
+          name: fileName,
+          preview: URL.createObjectURL(file),
+        },
+      }));
+    } else if (fieldName === 'secondaryImages') {
+      if (formData.secondaryImages.length < 3) {
+        const newSecondaryImages = {
+          id: uuidv4(),
+          file: file,
+          name: fileName,
+          preview: URL.createObjectURL(file),
+        };
+  
+        setFormData(prev => ({
+          ...prev,
+          secondaryImages: [...prev.secondaryImages, newSecondaryImages],
+        }));
+      } else {
+        message.warning("You can only upload up to 3 secondary images.");
+      }
+    }
+  };
+  
+
+  const handleSubmit = async () => {
+    if (!formData.primaryImage || formData.secondaryImages.length === 0) {
+      message.warning("Please upload a primary image and at least one secondary image.");
+      return;
+    }
+
+    const { primaryImage, secondaryImages, ...carInput } = formData;
+
+    setLoading(true);
+    try {
+      await addCar({
+        variables: {
+          ...carInput,
+          primaryImage: primaryImage?.file,
+          secondaryImages: secondaryImages.map(img => img.file),
+        },
+      });
+    } catch(error){
+      console.error("Error adding car:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle the form submission logic here
-    const carData = {
-      carModel,
-      carType,
-      seats,
-      fuelType,
-      transmissionType,
-      description,
-      primaryImage,
-      secondaryImages
-    };
-    console.log(carData);
-    // You can add an API call here to submit car data
-  };
+  if (loadingManufacturers) return <p>Loading manufacturers...</p>;
+  if (errorManufacturers) return <p>Error fetching manufacturers: {errorManufacturers.message}</p>;
+
+  const manufacturers = manufacturersData?.getManufacturers || [];
 
   return (
-    <div className={styles.container}>
-      <div className={styles.formContainer}>
-        <h2>Add New Car</h2>
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <label>Manufacturer</label>
-          <select className={styles.input} required>
-            <option value="">Select Manufacturer</option>
-            {manufacturers.map((manufacturer) => (
-              <option key={manufacturer.id} value={manufacturer.name}>
-                {manufacturer.name}
-              </option>
-            ))}
-          </select>
+    <Form layout="vertical" onFinish={handleSubmit} className={styles.form}>
+      <Form.Item label="Select Manufacturer" required className={styles.formItem}>
+        <Select
+          onChange={(value) => handleChange(value, "manufacturerId")}
+          placeholder="Select Manufacturer"
+          className={styles.selectInput}
+        >
+          {manufacturers.map((manufacturer: Manufacturer) => (
+            <Option key={manufacturer.id} value={manufacturer.id}>
+              {manufacturer.name}
+            </Option>
+          ))}
+        </Select>
+      </Form.Item>
 
-          <label>Car Model</label>
-          <input
-            type="text"
-            className={styles.input}
-            value={carModel}
-            onChange={(e) => setCarModel(e.target.value)}
-            required
-          />
+      <Form.Item label="Car Name" required className={styles.formItem}>
+        <Input
+          onChange={(e) => handleChange(e.target.value, "name")}
+          placeholder="Car Name"
+          className={styles.input}
+        />
+      </Form.Item>
 
-          <label>Type of Car</label>
-          <input
-            type="text"
-            className={styles.input}
-            value={carType}
-            onChange={(e) => setCarType(e.target.value)}
-            required
-          />
+      <Form.Item label="Car Type" required className={styles.formItem}>
+        <Input
+          onChange={(e) => handleChange(e.target.value, "type")}
+          placeholder="Car Type"
+          className={styles.input}
+        />
+      </Form.Item>
 
-          <label>Seats</label>
-          <input
-            type="number"
-            className={styles.input}
-            value={seats}
-            onChange={(e) => setSeats(parseInt(e.target.value))}
-            required
-          />
+      <Form.Item label="Description" required className={styles.formItem}>
+        <Input.TextArea
+          onChange={(e) => handleChange(e.target.value, "description")}
+          placeholder="Description"
+          className={styles.textArea}
+        />
+      </Form.Item>
 
-          <label>Fuel Type</label>
-          <select
-            className={styles.input}
-            value={fuelType}
-            onChange={(e) => setFuelType(e.target.value)}
-            required
-          >
-            <option value="">Select Fuel Type</option>
-            <option value="Petrol">Petrol</option>
-            <option value="Diesel">Diesel</option>
-            <option value="Electric">Electric</option>
-            <option value="Hybrid">Hybrid</option>
-          </select>
+      <Form.Item label="Available Quantity" required className={styles.formItem}>
+        <Input
+          type="number"
+          onChange={(e) => handleChange(e.target.value, "quantity")}
+          placeholder="Available Quantity"
+          className={styles.input}
+        />
+      </Form.Item>
 
-          <label>Transmission Type</label>
-          <select
-            className={styles.input}
-            value={transmissionType}
-            onChange={(e) => setTransmissionType(e.target.value)}
-            required
-          >
-            <option value="">Select Transmission</option>
-            <option value="Manual">Manual</option>
-            <option value="Automatic">Automatic</option>
-          </select>
+      <Form.Item label="Transmission" required className={styles.formItem}>
+        <Radio.Group
+          onChange={(e) => handleChange(e.target.value, "transmission")}
+          className={styles.radioGroup}
+        >
+          <Radio value="Automatic" className={styles.radioButton}>Automatic</Radio>
+          <Radio value="Manual" className={styles.radioButton}>Manual</Radio>
+        </Radio.Group>
+      </Form.Item>
 
-          <label>Description</label>
-          <textarea
-            className={styles.textarea}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
+      <Form.Item label="Number of Seats" required className={styles.formItem}>
+        <Select
+          onChange={(value) => handleChange(value, "numberOfSeats")}
+          placeholder="Select Number of Seats"
+          className={styles.selectInput}
+        >
+          <Option value="2">2</Option>
+          <Option value="3">3</Option>
+          <Option value="4">4</Option>
+          <Option value="5">5</Option>
+          <Option value="7">7</Option>
+          <Option value="8">8</Option>
+        </Select>
+      </Form.Item>
 
-          <label>Primary Image</label>
-          <Upload
-            maxCount={1}
-            onChange={handlePrimaryImageChange}
-            beforeUpload={() => false}
-            listType="picture"
-            className={styles.upload}
-          >
-            <Button icon={<UploadOutlined />}>Upload Primary Image</Button>
-          </Upload>
+      <Form.Item label="Fuel Type" required className={styles.formItem}>
+        <Select
+          onChange={(value) => handleChange(value, "fuelType")}
+          placeholder="Select Fuel Type"
+          className={styles.selectInput}
+        >
+          <Option value="Petrol">Petrol</Option>
+          <Option value="Diesel">Diesel</Option>
+          <Option value="Electric">Electric</Option>
+        </Select>
+      </Form.Item>
 
-          <label>Secondary Images (Max 3)</label>
-          <Upload
-            multiple
-            listType="picture"
-            fileList={secondaryImages}
-            onChange={handleSecondaryImagesChange}
-            beforeUpload={() => false}
-            className={styles.upload}
-          >
-            <Button icon={<UploadOutlined />}>Upload Secondary Images</Button>
-          </Upload>
+      <Form.Item label="Upload Primary Image" required className={styles.formItem}>
+        <Upload
+          maxCount={1}
+          listType="picture"
+          beforeUpload={(file) => {
+            handleImageChange(file, "primaryImage");
+            return false;
+          }}
+          className={styles.uploadButton}
+        >
+          <Button>Click to Upload Primary Image</Button>
+        </Upload>
+      </Form.Item>
 
-          <button type="submit" className={styles.button}>
-            Add
-          </button>
-        </form>
-      </div>
-    </div>
+      <Form.Item label="Upload secondary Images (Up to 3)" className={styles.formItem}>
+        <Upload
+          listType="picture"
+          multiple
+          beforeUpload={(file) => {
+            if (formData.secondaryImages.length < 3) {
+              handleImageChange(file, "secondaryImages");
+              return false;
+            }
+            message.warning("You can only upload up to 3 images.");
+            return false;
+          }}
+          className={styles.uploadButton}
+        >
+          <Button>Click to Upload secondary Images</Button>
+        </Upload>
+      </Form.Item>
+
+      <Button type="primary" htmlType="submit" loading={loading} disabled={loading} className={styles.submitButton}>
+        {loading ? "Submitting..." : "Submit"}
+      </Button>
+    </Form>
   );
 };
 

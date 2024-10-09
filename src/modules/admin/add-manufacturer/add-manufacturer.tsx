@@ -1,58 +1,97 @@
 "use client";
-import { useState } from "react";
-import CountryList from 'react-select-country-list';
-import Select from 'react-select';
-import styles from './add-manufacturer.module.css'; // Import the CSS module
 
-const AddManufacturer = () => {
-  const [manufacturerName, setManufacturerName] = useState("");
-  const [country, setCountry] = useState("");
+import React, { useState } from 'react';
+import { useMutation } from '@apollo/client';
+import { message, Form, Input, Button, Select } from 'antd';
+import CountrySelect from 'react-select-country-list';
+import { ADD_MANUFACTURER } from '@/graphql/mutations/manufacture';
+import styles from './add-manufacturer.module.css';
 
-  const options = CountryList().getData(); // Get country options
+const AddManufacturerForm: React.FC = () => {
+  const [form] = Form.useForm();
+  const [country, setCountry] = useState<string>(''); // State to store the selected country
+  const [addManufacturer, { loading }] = useMutation(ADD_MANUFACTURER); // Apollo mutation hook
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Add your form submission logic here
-    console.log({
-      manufacturerName,
-      country,
-    });
-    // Clear form after submission
-    setManufacturerName("");
-    setCountry("");
+  const handleFinish = async (values: { name: string }) => {
+    const { name } = values;
+
+    if (!country) {
+      message.error('Please select a country.');
+      return;
+    }
+
+    try {
+      await addManufacturer({
+        variables: {
+          name,
+          country, // Use selected country
+        },
+      });
+
+      message.success('Manufacturer added successfully!');
+      form.resetFields();
+      setCountry('');
+    } catch (error: any) {
+      message.error(error.message || 'Error adding manufacturer.');
+    }
+  };
+
+  // Generate country options from react-select-country-list
+  const countryOptions = CountrySelect().getData().map((country) => ({
+    label: country.label, // Full country name
+    value: country.value, // Country code
+  }));
+
+  const handleCountryChange = (value: string) => {
+    const selectedCountry = countryOptions.find(option => option.value === value);
+    if (selectedCountry) {
+      setCountry(selectedCountry.label); // Store the full name of the selected country
+    }
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.formContainer}>
-        <h2>Add Manufacturer</h2>
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="manufacturerName">Manufacturer Name</label>
-            <input
-              type="text"
-              id="manufacturerName"
-              value={manufacturerName}
-              onChange={(e) => setManufacturerName(e.target.value)}
-              className={styles.input}
-              required
-            />
-          </div>
-          <div className={styles.inputGroup}>
-            <label htmlFor="country">Country</label>
-            <Select
-              options={options}
-              value={options.find(option => option.value === country)}
-              onChange={(selectedOption) => setCountry(selectedOption?.value || "")}
-              className={styles.select}
-              isClearable
-            />
-          </div>
-          <button type="submit" className={styles.button}>Add</button>
-        </form>
-      </div>
+    <div className={styles.addManufacturerFormWrapper}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleFinish}
+        className={styles.addManufacturerForm}
+      >
+        <Form.Item
+          label="Name"
+          name="name"
+          rules={[{ required: true, message: 'Please input the manufacturer name!' }]}
+          className={styles.formItem}
+        >
+          <Input placeholder="Enter manufacturer name" className={styles.input} />
+        </Form.Item>
+
+        <Form.Item
+          label="Country"
+          name="country"
+          rules={[{ required: true, message: 'Please select a country!' }]}
+          className={styles.formItem}
+        >
+          <Select
+            options={countryOptions}
+            onChange={handleCountryChange} // Update the country state with the full country name
+            placeholder="Select a country"
+            showSearch
+            className={styles.select}
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+          />
+        </Form.Item>
+
+        <Form.Item className={styles.formItem}>
+          <Button type="primary" htmlType="submit" loading={loading} className={styles.submitButton}>
+            {loading ? 'Adding...' : 'Add Manufacturer'}
+          </Button>
+        </Form.Item>
+      </Form>
     </div>
   );
 };
 
-export default AddManufacturer;
+export default AddManufacturerForm;
