@@ -6,7 +6,6 @@ export interface Manufacturer {
 
 
   export interface FormData {
- 
     name: string;
     type: string;
     description: string;
@@ -17,6 +16,7 @@ export interface Manufacturer {
     secondaryImages: ImageFile[];
     quantity: string;
     manufacturerId: string;
+    year: string;
   }
   
   export interface ImageFile {

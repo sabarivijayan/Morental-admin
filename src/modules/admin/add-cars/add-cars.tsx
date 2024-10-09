@@ -9,11 +9,13 @@ import { Manufacturer, FormData, GetManufacturersResponse } from "@/interfaces/m
 import Swal from "sweetalert2";
 import { v4 as uuidv4 } from "uuid";
 import styles from './add-cars.module.css';
+import { useRouter } from "next/navigation";
 
 const { Option } = Select;
 
 const AddCars = () => {
   const [form] = Form.useForm();
+  const router = useRouter();
   const { loading: loadingManufacturers, error: errorManufacturers, data: manufacturersData } = useQuery<GetManufacturersResponse>(GET_MANUFACTURERS);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -27,7 +29,12 @@ const AddCars = () => {
     secondaryImages: [],
     quantity: '',
     manufacturerId: '',
+    year: '',
   });
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1979 }, (_, i) => currentYear - i); // List from 1980 to current year
+
 
   const [addCar] = useMutation(ADD_CARS, {
     onCompleted: () => {
@@ -42,9 +49,11 @@ const AddCars = () => {
         secondaryImages: [],
         quantity: "",
         manufacturerId: "",
+        year: "",
       });
       Swal.fire("Success!", "Car has been added successfully.", "success");
       form.resetFields();
+      router.refresh();
     },
     onError: (error) => {
       Swal.fire("Error!", error.message, "error");
@@ -149,6 +158,20 @@ const AddCars = () => {
         />
       </Form.Item>
 
+      <Form.Item label="Year" required className={styles.formItem}>
+        <Select
+          onChange={(value) => handleChange(value, "year")}
+          placeholder="Select Year"
+          className={styles.selectInput}
+        >
+          {years.map((year) => (
+            <Option key={year} value={year}>
+              {year}
+            </Option>
+          ))}
+        </Select>
+      </Form.Item>
+
       <Form.Item label="Description" required className={styles.formItem}>
         <Input.TextArea
           onChange={(e) => handleChange(e.target.value, "description")}
@@ -165,15 +188,16 @@ const AddCars = () => {
           className={styles.input}
         />
       </Form.Item>
-
-      <Form.Item label="Transmission" required className={styles.formItem}>
-        <Radio.Group
-          onChange={(e) => handleChange(e.target.value, "transmission")}
-          className={styles.radioGroup}
+      
+      <Form.Item label="Transmission Type" required className={styles.formItem}>
+        <Select
+          onChange={(value) => handleChange(value, "transmissionType")}
+          placeholder="Select Transmission Type"
+          className={styles.selectInput}
         >
-          <Radio value="Automatic" className={styles.radioButton}>Automatic</Radio>
-          <Radio value="Manual" className={styles.radioButton}>Manual</Radio>
-        </Radio.Group>
+          <Option value="Automatic">Automatic</Option>
+          <Option value="Manual">Manual</Option>
+        </Select>
       </Form.Item>
 
       <Form.Item label="Number of Seats" required className={styles.formItem}>

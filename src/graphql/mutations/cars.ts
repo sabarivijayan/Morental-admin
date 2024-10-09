@@ -12,6 +12,7 @@ export const ADD_CARS = gql`
         $manufacturerId: String!
         $primaryImage: Upload!
         $secondaryImages: [Upload!]!
+        $year: String!
     ){
         addCar(
             input:{
@@ -23,6 +24,7 @@ export const ADD_CARS = gql`
                 description: $description
                 quantity: $quantity
                 manufacturerId: $manufacturerId
+                year: $year
             }
             primaryImage: $primaryImage
             secondaryImages: $secondaryImages
@@ -36,6 +38,7 @@ export const ADD_CARS = gql`
             description
             quantity
             manufacturerId
+            year
             primaryImageUrl
             secondaryImagesUrls
         }
