@@ -1,0 +1,62 @@
+.container {
+    padding: 64px 20px;
+    position: relative; /* To ensure button can be positioned relative to the container */
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px; /* Space between the title and the form */
+  }
+  
+  .listButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #1890ff;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 20px; /* Padding from the edge of the container */
+  }
+  
+  .form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .formItem {
+    margin-bottom: 16px;
+  }
+  
+  .input,
+  .textArea,
+  .selectInput {
+    width: 100%;
+  }
+  
+  .uploadButton {
+    width: 100%;
+  }
+  
+  .submitButton {
+    width: 100%;
+    background-color: #1890ff;
+    border-color: #1890ff;
+    margin-top: 16px;
+    padding: 10px 0;
+  }
+  

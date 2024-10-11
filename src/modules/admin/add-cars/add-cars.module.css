@@ -1,3 +1,34 @@
+.container {
+  padding: 64px 20px;
+  position: relative; /* To ensure button can be positioned relative to the container */
+}
+
+.header {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px; /* Space between the title and the form */
+}
+
+.listButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 20px; /* Padding from the edge of the container */
+}
+
 .form {
   max-width: 600px;
   margin: 0 auto;
@@ -15,15 +46,6 @@
 .textArea,
 .selectInput {
   width: 100%;
-}
-
-.radioGroup {
-  display: flex;
-  gap: 16px;
-}
-
-.radioButton {
-  font-size: 14px;
 }
 
 .uploadButton {

@@ -11,6 +11,8 @@
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
     "@apollo/client": "^3.11.8",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@types/apollo-upload-client": "^18.0.0",
     "admin": "file:",
     "antd": "^5.21.2",

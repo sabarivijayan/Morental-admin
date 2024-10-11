@@ -1,7 +1,8 @@
 
 export interface Manufacturer {
-    id: number;
+    id: string;
     name: string;
+    country: string;
   }
 
 
@@ -28,4 +29,10 @@ export interface Manufacturer {
   
   export interface GetManufacturersResponse {
     getManufacturers: Manufacturer[];
+  }
+
+  export interface EditManufacturerProps{
+    visible: boolean;
+    onClose: () => void;
+    manufacturer: Manufacturer;
   }

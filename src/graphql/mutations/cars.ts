@@ -44,3 +44,28 @@ export const ADD_CARS = gql`
         }
     }
 `;
+export const DELETE_CAR = gql`
+    mutation DeleteCar($id: String!) {
+        deleteCar(id: $id) {
+            id
+        }
+    }
+`;
+
+export const UPDATE_CAR = gql`
+  mutation UpdateCar($id: String!, $input: EditCarInput!) {
+    updateCar(id: $id, input: $input) {
+      id
+      name
+      type
+      description
+      fuelType
+      numberOfSeats
+      transmissionType
+      quantity
+      primaryImageUrl
+      secondaryImagesUrls
+      year
+    }
+  }
+`;

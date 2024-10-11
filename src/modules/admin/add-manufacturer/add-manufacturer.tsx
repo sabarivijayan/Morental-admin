@@ -1,22 +1,29 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useMutation } from '@apollo/client';
-import { message, Form, Input, Button, Select } from 'antd';
-import CountrySelect from 'react-select-country-list';
-import { ADD_MANUFACTURER } from '@/graphql/mutations/manufacture';
-import styles from './add-manufacturer.module.css';
+import React, { useState } from "react";
+import { useMutation } from "@apollo/client";
+import { message, Form, Input, Button, Select } from "antd";
+import CountrySelect from "react-select-country-list";
+import { ADD_MANUFACTURER } from "@/graphql/mutations/manufacture";
+import styles from "./add-manufacturer.module.css";
+import { useRouter } from "next/navigation";
+
+interface CountryOption {
+  label: string;
+  value: string;
+}
 
 const AddManufacturerForm: React.FC = () => {
   const [form] = Form.useForm();
-  const [country, setCountry] = useState<string>(''); // State to store the selected country
+  const [country, setCountry] = useState<string>(""); // State to store the selected country
   const [addManufacturer, { loading }] = useMutation(ADD_MANUFACTURER); // Apollo mutation hook
+  const router = useRouter();
 
   const handleFinish = async (values: { name: string }) => {
     const { name } = values;
 
     if (!country) {
-      message.error('Please select a country.');
+      message.error("Please select a country.");
       return;
     }
 
@@ -28,22 +35,26 @@ const AddManufacturerForm: React.FC = () => {
         },
       });
 
-      message.success('Manufacturer added successfully!');
+      message.success("Manufacturer added successfully!");
       form.resetFields();
-      setCountry('');
+      setCountry("");
     } catch (error: any) {
-      message.error(error.message || 'Error adding manufacturer.');
+      message.error(error.message || "Error adding manufacturer.");
     }
   };
 
   // Generate country options from react-select-country-list
-  const countryOptions = CountrySelect().getData().map((country) => ({
-    label: country.label, // Full country name
-    value: country.value, // Country code
-  }));
+  const countryOptions: CountryOption[] = CountrySelect()
+    .getData()
+    .map((country) => ({
+      label: country.label, // Full country name
+      value: country.value, // Country code
+    }));
 
   const handleCountryChange = (value: string) => {
-    const selectedCountry = countryOptions.find(option => option.value === value);
+    const selectedCountry = countryOptions.find(
+      (option) => option.value === value
+    );
     if (selectedCountry) {
       setCountry(selectedCountry.label); // Store the full name of the selected country
     }
@@ -51,6 +62,13 @@ const AddManufacturerForm: React.FC = () => {
 
   return (
     <div className={styles.addManufacturerFormWrapper}>
+      <h1 className={styles.title}>Add Manufacturers</h1>
+      <Button
+        onClick={() => router.push("/list-manufacturers")}
+        className={styles.listButton}
+      >
+        List Manufacturer
+      </Button>
       <Form
         form={form}
         layout="vertical"
@@ -60,16 +78,21 @@ const AddManufacturerForm: React.FC = () => {
         <Form.Item
           label="Name"
           name="name"
-          rules={[{ required: true, message: 'Please input the manufacturer name!' }]}
+          rules={[
+            { required: true, message: "Please input the manufacturer name!" },
+          ]}
           className={styles.formItem}
         >
-          <Input placeholder="Enter manufacturer name" className={styles.input} />
+          <Input
+            placeholder="Enter manufacturer name"
+            className={styles.input}
+          />
         </Form.Item>
 
         <Form.Item
           label="Country"
           name="country"
-          rules={[{ required: true, message: 'Please select a country!' }]}
+          rules={[{ required: true, message: "Please select a country!" }]}
           className={styles.formItem}
         >
           <Select
@@ -78,15 +101,22 @@ const AddManufacturerForm: React.FC = () => {
             placeholder="Select a country"
             showSearch
             className={styles.select}
-            filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            filterOption={
+              (input, option) =>
+                typeof option?.label === "string" &&
+                option.label.toLowerCase().includes(input.toLowerCase()) // Ensure option.label is a string
             }
           />
         </Form.Item>
 
         <Form.Item className={styles.formItem}>
-          <Button type="primary" htmlType="submit" loading={loading} className={styles.submitButton}>
-            {loading ? 'Adding...' : 'Add Manufacturer'}
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            className={styles.submitButton}
+          >
+            {loading ? "Adding..." : "Add Manufacturer"}
           </Button>
         </Form.Item>
       </Form>

@@ -35,19 +35,19 @@ const Sidebar: FC<SidebarProps> = ({ isVisible, onClose }) => {
             <Image src="/icons/home.svg" alt="Dashboard" width={20} height={20} />
             Dashboard
           </li>
-          <li className={styles.menuItem} onClick={() => { router.push('/add-manufacturer'); onClose(); }}>
+          <li className={styles.menuItem} onClick={() => { router.push('/list-manufacturers'); onClose(); }}>
             <Image src="/icons/building.svg" alt="Add Manufacturer" width={20} height={20} />
-            Add Manufacturer
+            Manufacturers
           </li>
-          <li className={styles.menuItem} onClick={() => { router.push('/add-cars'); onClose(); }}>
+          <li className={styles.menuItem} onClick={() => { router.push('/list-cars'); onClose(); }}>
             <Image src="/icons/car.svg" alt="Add Cars" width={20} height={20} />
-            Add Cars
+            Cars
           </li>
-          <li className={styles.menuItem} onClick={() => { router.push('/add-rentable-cars'); onClose(); }}>
+          <li className={styles.menuItem} onClick={() => { router.push('/list-rentable-cars'); onClose(); }}>
             <Image src="/icons/driving.svg" alt="Add Rentable Cars" width={20} height={20} />
-            Add Rentable Cars
+            Rentable Cars
           </li>
-          <li className={styles.menuItem} onClick={() => { router.push('/add-location'); onClose(); }}>
+          <li className={styles.menuItem} onClick={() => { router.push('/list-location'); onClose(); }}>
             <Image src="/icons/location.svg" alt="Locations" width={20} height={20} />
             Locations
           </li>
