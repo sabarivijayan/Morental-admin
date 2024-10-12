@@ -1,0 +1,98 @@
+/* components/DashboardCard.module.css */
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-grow: 1;
+}
+
+.chartContainer {
+  width: 60%;
+  height: 180px;
+}
+
+.totalWrapper {
+  width: 40%;
+  text-align: center;
+}
+
+.total {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.totalLabel {
+  font-size: 14px;
+  color: #666;
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+}
+
+.legendColor {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.legendName {
+  font-size: 14px;
+  color: #666;
+  margin-right: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.legendValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-left: auto;
+}
+
+@media (max-width: 1024px) {
+  .content {
+    flex-direction: column;
+  }
+
+  .chartContainer,
+  .totalWrapper {
+    width: 100%;
+  }
+
+  .chartContainer {
+    margin-bottom: 20px;
+  }
+}

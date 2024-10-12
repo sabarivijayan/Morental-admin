@@ -57,7 +57,7 @@ const ListRentableCars: React.FC = () => {
     if (selectedRentableCar && pricePerDay && availableQuantity) {
       updateRentableCar({
         variables: {
-          id: selectedRentableCar.carId,
+          id: selectedRentableCar.id,
           input: { pricePerDay, availableQuantity },
         },
       });
@@ -110,7 +110,7 @@ const ListRentableCars: React.FC = () => {
             label: "Delete Car",
             icon: <DeleteOutlined />,
             danger: true,
-            onClick: () => handleDelete(record.carId),
+            onClick: () => handleDelete(record.id),
           },
         ];
 

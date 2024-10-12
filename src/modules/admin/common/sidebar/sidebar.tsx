@@ -2,6 +2,8 @@ import { FC } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import styles from './sidebar.module.css';
+import cookies from 'js-cookie'
+
 
 interface SidebarProps {
   isVisible: boolean;
@@ -12,11 +14,14 @@ const Sidebar: FC<SidebarProps> = ({ isVisible, onClose }) => {
   const router = useRouter();
 
   const handleLogout = () => {
-    // Implement your log out logic here
-    // For example, you might clear user session and redirect to login page
-    console.log('Logging out...'); // Placeholder for logout logic
-    router.push('/login'); // Redirect to login page
-    onClose(); // Close the sidebar after log out
+    // Clear user session or token
+    cookies.remove('adminToken'); // Assuming the token is stored in localStorage
+
+    // Redirect to the login page
+    router.push('/login');
+
+    // Close the sidebar after logging out
+    onClose();
   };
 
   return (

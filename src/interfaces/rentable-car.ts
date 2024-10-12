@@ -10,6 +10,7 @@ export interface AddRentableCarsData{
 }
 
 export interface RentableCarInput{
+    id: string;
     carId: string;
     pricePerDay: number;
     availableQuantity: number;
