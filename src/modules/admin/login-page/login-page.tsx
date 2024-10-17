@@ -21,7 +21,7 @@ const Login: React.FC = () => {
         try {
             await login(email, password);
             setTimeout(() => {
-                router.push('/');
+                router.push('/dashboard');
             }, 1000);
         } catch (error) {
             if (error instanceof Error) {

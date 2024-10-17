@@ -13,6 +13,7 @@ const protectedPaths = [
   "/list-cars",
   "/list-manufacturers",
   "/list-rentable-cars",
+  "/dashboard",
 ];
 
 export function middleware(req: NextRequest) {
@@ -22,13 +23,13 @@ export function middleware(req: NextRequest) {
   // If user is not authenticated and trying to access a protected page
   if (protectedPaths.some((path) => pathname.startsWith(path)) && !token) {
     // Redirect to the login page
-    const loginUrl = new URL("/login", req.url);
+    const loginUrl = new URL("/", req.url);
     return NextResponse.redirect(loginUrl);
   }
 
   // If the user is already authenticated and tries to access the login page, redirect them to the dashboard
-  if (pathname === "/login" && token) {
-    const dashboardUrl = new URL("/", req.url);
+  if (pathname === "/" && token) {
+    const dashboardUrl = new URL("/dashboard", req.url);
     return NextResponse.redirect(dashboardUrl);
   }
 
@@ -48,6 +49,6 @@ export const config = {
     "/list-manufacturers",
     "/list-rentable-cars",
     "/",
-    "/login",
+    "/dashboard",
   ],
 };

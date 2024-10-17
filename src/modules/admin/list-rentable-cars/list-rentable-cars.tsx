@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { Button, Image, Modal, Input, Select, Table, Dropdown } from "antd";
 import Swal from "sweetalert2";
-import { useRouter } from "next/navigation";
 import { DELETE_RENTABLE_CAR, UPDATE_RENTABLE_CAR } from "@/graphql/mutations/rentable-cars";
 import { GET_RENTABLE_CARS } from "@/graphql/queries/rentable-cars";
 import { RentableCarInput } from "@/interfaces/rentable-car";
@@ -11,7 +10,6 @@ import { DownOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import styles from "./list-rentable-cars.module.css";
 
 const ListRentableCars: React.FC = () => {
-  const router = useRouter();
   const [selectedRentableCar, setSelectedRentableCar] = useState<RentableCarInput | null>(null);
   const [pricePerDay, setPricePerDay] = useState<number | null>(null);
   const [availableQuantity, setAvailableQuantity] = useState<number | null>(null);
