@@ -1,8 +1,8 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
-export const GET_ALL_BOOKINGS = gql`
-  query GetAllBookings($filters: BookingFilterInput) {
-    getAllBookings(filters: $filters) {
+export const FETCH_ALL_BOOKINGS = gql`
+  query FetchAllBookings {
+    fetchAllBookings {
       status
       message
       data {
@@ -24,14 +24,23 @@ export const GET_ALL_BOOKINGS = gql`
           pricePerDay
           availableQuantity
           car {
+            id
             name
+            type
+            numberOfSeats
+            fuelType
+            transmissionType
+            description
+            quantity
             manufacturer {
+              id
               name
+              country
             }
+            primaryImageUrl
+            secondaryImagesUrls
+            year
           }
-        }
-        user {
-          id
         }
       }
     }

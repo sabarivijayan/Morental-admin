@@ -1,37 +1,39 @@
-.bookingsPage {
-    padding: 24px;
-    background-color: #f0f2f5;
-    min-height: 100vh;
-  }
-  
-  .ant-input {
-    border-radius: 4px;
-  }
-  
-  .ant-btn-primary {
-    background-color: #1890ff;
-    border-color: #1890ff;
-  }
-  
-  .ant-btn-primary:hover {
-    background-color: #40a9ff;
-    border-color: #40a9ff;
-  }
-  
-  .ant-table {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .ant-space {
-    margin-bottom: 16px;
-    display: flex;
-    justify-content: flex-start;
-  }
-  
-  .ant-table-pagination {
-    text-align: right;
-    margin-top: 16px;
-  }
-  
+.bookingList {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.table {
+  width: 100%;
+}
+
+.table th, .table td {
+  text-align: center;
+}
+
+.table .ant-table-tbody > tr > td {
+  vertical-align: middle;
+}
+
+.table .ant-tag {
+  margin: 0;
+}

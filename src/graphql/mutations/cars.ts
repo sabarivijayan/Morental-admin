@@ -69,3 +69,13 @@ export const UPDATE_CAR = gql`
     }
   }
 `;
+
+export const ADD_CAR_BY_EXCEL = gql`
+  mutation addCarByExcel($excelFile: Upload!) {
+    addCarByExcel(excelFile: $excelFile) {
+      success
+      message
+      addedCarsCount
+    }
+  }
+`;

@@ -1,19 +1,15 @@
-"use client";
-
-import React, { useRef, useState } from "react";
+"use client"
+import React, { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MANUFACTURERS } from "@/graphql/queries/manufacture";
-import { ADD_CARS } from "@/graphql/mutations/cars";
+import { ADD_CARS, ADD_CAR_BY_EXCEL } from "@/graphql/mutations/cars"; // Import both mutations
 import { Input, Button, Select, Form, Upload, message } from "antd";
-import {
-  Manufacturer,
-  FormData,
-  GetManufacturersResponse,
-} from "@/interfaces/manufacturer";
+import { Manufacturer, FormData, GetManufacturersResponse } from "@/interfaces/manufacturer";
 import Swal from "sweetalert2";
 import { v4 as uuidv4 } from "uuid";
 import styles from "./add-cars.module.css";
 import { useRouter } from "next/navigation";
+import { UploadOutlined } from "@ant-design/icons"; // Icon for the upload button
 
 const { Option } = Select;
 
@@ -25,7 +21,9 @@ const AddCars = () => {
     error: errorManufacturers,
     data: manufacturersData,
   } = useQuery<GetManufacturersResponse>(GET_MANUFACTURERS);
+
   const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState<File | null>(null); // State for Excel file
   const [formData, setFormData] = useState<FormData>({
     name: "",
     type: "",
@@ -69,6 +67,51 @@ const AddCars = () => {
       Swal.fire("Error!", error.message, "error");
     },
   });
+
+  // Mutation for adding cars by Excel
+  const [addCarByExcel] = useMutation(ADD_CAR_BY_EXCEL, {
+    onCompleted: (data) => {
+      const { success, message: responseMessage, addedCarsCount } = data.addCarByExcel;
+      if (success) {
+        message.success(`Added ${addedCarsCount} cars successfully.`);
+      } else {
+        message.error(responseMessage);
+      }
+      setLoading(false);
+    },
+    onError: (error) => {
+      message.error(`Error: ${error.message}`);
+      setLoading(false);
+    },
+  });
+
+  const handleExcelUpload = async () => {
+    if (!file) {
+      message.warning("Please select an Excel file to upload.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await addCarByExcel({
+        variables: {
+          excelFile: file,
+        },
+      });
+    } catch (error) {
+      console.error("Error uploading Excel file:", error);
+      setLoading(false);
+    }
+  };
+
+  const handleFileChange = (info: any) => {
+    const fileList = info.fileList;
+    if (fileList.length > 0) {
+      setFile(fileList[0].originFileObj); // Store the selected Excel file
+    } else {
+      setFile(null);
+    }
+  };
 
   const handleChange = (value: any, fieldName: string) => {
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
@@ -150,6 +193,7 @@ const AddCars = () => {
         </Button>
       </div>
       <Form layout="vertical" onFinish={handleSubmit} className={styles.form}>
+        {/* Existing form fields */}
         <Form.Item
           label="Select Manufacturer"
           required
@@ -261,53 +305,57 @@ const AddCars = () => {
           </Select>
         </Form.Item>
 
-        <Form.Item
-          label="Upload Primary Image"
-          required
-          className={styles.formItem}
-        >
-          <Upload
-            maxCount={1}
-            listType="picture"
-            beforeUpload={(file) => {
-              handleImageChange(file, "primaryImage");
-              return false;
-            }}
-            className={styles.uploadButton}
-          >
-            <Button>Click to Upload Primary Image</Button>
-          </Upload>
+        <Form.Item label="Primary Image" required className={styles.formItem}>
+          <Input
+            type="file"
+            onChange={(e: any) =>
+              handleImageChange(e.target.files[0], "primaryImage")
+            }
+            className={styles.input}
+            accept="image/*"
+          />
         </Form.Item>
 
-        <Form.Item
-          label="Upload secondary Images (Up to 3)"
-          className={styles.formItem}
-        >
-          <Upload
-            listType="picture"
-            multiple
-            beforeUpload={(file) => {
-              if (formData.secondaryImages.length < 3) {
-                handleImageChange(file, "secondaryImages");
-                return false;
-              }
-              message.warning("You can only upload up to 3 images.");
-              return false;
-            }}
-            className={styles.uploadButton}
-          >
-            <Button>Click to Upload secondary Images</Button>
-          </Upload>
+        <Form.Item label="Secondary Images" required className={styles.formItem}>
+          <Input
+            type="file"
+            onChange={(e: any) =>
+              handleImageChange(e.target.files[0], "secondaryImages")
+            }
+            className={styles.input}
+            accept="image/*"
+          />
         </Form.Item>
 
         <Button
           type="primary"
           htmlType="submit"
           loading={loading}
-          disabled={loading}
           className={styles.submitButton}
         >
-          {loading ? "Submitting..." : "Submit"}
+          {loading ? "Submitting..." : "Add Car"}
+        </Button>
+
+        {/* Excel Upload Section */}
+        <Form.Item label="Upload Excel File to Add Cars" className={styles.formItem}>
+          <Upload
+            accept=".xlsx, .xls"
+            beforeUpload={() => false}
+            onChange={handleFileChange}
+            className={styles.uploadButton}
+          >
+            <Button icon={<UploadOutlined />}>Select Excel File</Button>
+          </Upload>
+        </Form.Item>
+
+        <Button
+          type="primary"
+          onClick={handleExcelUpload}
+          loading={loading}
+          disabled={!file}
+          className={styles.submitButton}
+        >
+          {loading ? "Uploading..." : "Upload and Add Cars via Excel"}
         </Button>
       </Form>
     </div>

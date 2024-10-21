@@ -16,6 +16,7 @@ import { Car } from "@/interfaces/car";
 import { GET_CARS } from "@/graphql/queries/cars";
 import styles from "./list-cars.module.css"; // Import the CSS module
 
+
 const ListCars: React.FC = () => {
   const router = useRouter();
   const [selectedRentableCar, setSelectedRentableCar] = useState<Car | null>(

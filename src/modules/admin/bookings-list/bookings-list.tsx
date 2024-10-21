@@ -1,181 +1,195 @@
 "use client"
 import React, { useEffect, useState } from "react";
-import { useQuery } from "@apollo/client";
-import { Table, Input, Button, Space, message, DatePicker } from "antd";
-import { ColumnsType } from "antd/lib/table";
-import { SearchOutlined } from "@ant-design/icons";
+import { useLazyQuery, useMutation } from "@apollo/client";
+import { Table, Spin, Result, Alert, Button, Tag, Dropdown, Menu } from "antd";
+import { DownOutlined } from "@ant-design/icons";
+import Cookies from "js-cookie";
 import styles from "./bookings-list.module.css";
-import { GET_ALL_BOOKINGS } from "@/graphql/queries/bookings";
+import { FETCH_ALL_BOOKINGS } from "@/graphql/queries/bookings";
+import { BOOKING_DELIVERY } from "@/graphql/mutations/bookings";
 
-const { RangePicker } = DatePicker;
+const BookingsList: React.FC = () => {
+  const token = Cookies.get("adminToken");
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-interface Car {
-  name: string;
-  manufacturer: {
-    name: string;
-  };
-}
-
-interface Rentable {
-  id: string;
-  pricePerDay: number;
-  availableQuantity: number;
-  car: Car;
-}
-
-interface User {
-  id: string;
-  // Remove fields that don't exist in your User type
-}
-
-interface Booking {
-  id: string;
-  carId: string;
-  userId: string;
-  pickUpDate: string;
-  pickUpTime: string;
-  dropOffDate: string;
-  dropOffTime: string;
-  pickUpLocation: string;
-  dropOffLocation: string;
-  address: string;
-  phoneNumber: string;
-  totalPrice: number;
-  status: string;
-  rentable: Rentable;
-  user: User;
-}
-
-const BookingsPage: React.FC = () => {
-  const { loading, data, error } = useQuery(GET_ALL_BOOKINGS, {
-    variables: { filters: {} } // Pass an empty filters object
+  const [fetchAllBookings, { loading, data, error }] = useLazyQuery(FETCH_ALL_BOOKINGS, {
+    onCompleted: (data) => {
+      if (!data.fetchAllBookings.status) {
+        setFetchError(data.fetchAllBookings.message);
+      } else {
+        setFetchError(null);
+      }
+    },
+    onError: (error) => {
+      console.error("GraphQL error:", error);
+      setFetchError(error.message);
+    },
   });
-  const [filteredData, setFilteredData] = useState<Booking[]>([]);
-  const [carNameFilter, setCarNameFilter] = useState<string>("");
-  const [userIdFilter, setUserIdFilter] = useState<string>("");
-  const [manufacturerFilter, setManufacturerFilter] = useState<string>("");
-  const [dateRange, setDateRange] = useState<[string, string] | null>(null);
+
+  const [bookingDelivery] = useMutation(BOOKING_DELIVERY);
+
+  const [dateRange, setDateRange] = useState<[string, string]>(["Aug 20, 2022", "Oct 20, 2022"]);
 
   useEffect(() => {
-    if (data && data.getAllBookings && data.getAllBookings.data) {
-      setFilteredData(data.getAllBookings.data);
+    if (token) {
+      console.log("Fetching bookings with token:", token);
+      fetchAllBookings({
+        context: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      });
+    } else {
+      console.error("No admin token found");
+      setFetchError("No admin token found. Please log in again.");
     }
-  }, [data]);
+  }, [token, fetchAllBookings]);
 
-  const handleSearch = () => {
-    const filtered = data.getAllBookings.data.filter((booking: Booking) => {
-      const carName = booking.rentable?.car?.name || "";
-      const userId = booking.userId || "";
-      const manufacturerName = booking.rentable?.car?.manufacturer?.name || "";
-      const pickUpDate = new Date(booking.pickUpDate);
-      const dropOffDate = new Date(booking.dropOffDate);
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "50px" }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
-      return (
-        carName.toLowerCase().includes(carNameFilter.toLowerCase()) &&
-        userId.toLowerCase().includes(userIdFilter.toLowerCase()) &&
-        manufacturerName.toLowerCase().includes(manufacturerFilter.toLowerCase()) &&
-        (!dateRange || (
-          pickUpDate >= new Date(dateRange[0]) &&
-          dropOffDate <= new Date(dateRange[1])
-        ))
-      );
-    });
-    setFilteredData(filtered);
+  if (fetchError) {
+    return (
+      <Result
+        status="error"
+        title="Failed to fetch bookings"
+        subTitle={fetchError}
+        extra={[
+          <Button key="retry" onClick={() => fetchAllBookings()}>
+            Try Again
+          </Button>,
+        ]}
+      />
+    );
+  }
+
+  const bookings = data?.fetchAllBookings?.data || [];
+
+  if (bookings.length === 0) {
+    return (
+      <Result
+        status="info"
+        title="No Bookings Found"
+        subTitle="It seems there are no bookings available at the moment."
+      />
+    );
+  }
+
+  const handleBookingDelivery = async (bookingId: string) => {
+    try {
+      const response = await bookingDelivery({
+        variables: { id: bookingId },
+        context: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      });
+      if (response.data.bookingDelivery.status) {
+        // Refetch the bookings to update the list
+        fetchAllBookings({
+          context: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        });
+      } else {
+        console.error("Booking delivery failed:", response.data.bookingDelivery.message);
+      }
+    } catch (error) {
+      console.error("Error during booking delivery: ", error);
+    }
   };
 
-  const columns: ColumnsType<Booking> = [
+  const menu = (
+    <Menu>
+      <Menu.Item key="1">Last 30 days</Menu.Item>
+      <Menu.Item key="2">Last 3 months</Menu.Item>
+      <Menu.Item key="3">Last 6 months</Menu.Item>
+    </Menu>
+  );
+
+  const columns = [
     {
-      title: "Car Name",
-      dataIndex: ["rentable", "car", "name"],
-      key: "carName",
+      title: 'Car',
+      dataIndex: ['rentable', 'car', 'primaryImageUrl'],
+      key: 'car',
     },
     {
-      title: "Manufacturer",
-      dataIndex: ["rentable", "car", "manufacturer", "name"],
-      key: "manufacturerName",
+      title: 'Pickup Date',
+      dataIndex: 'pickUpDate',
+      key: 'pickupDate',
+      render: (date: string) => new Date(date).toLocaleDateString(),
     },
     {
-      title: "User ID",
-      dataIndex: "userId",
-      key: "userId",
+      title: 'Dropoff Date',
+      dataIndex: 'dropOffDate',
+      key: 'dropoffDate',
+      render: (date: string) => new Date(date).toLocaleDateString(),
     },
     {
-      title: "Pick Up Date",
-      dataIndex: "pickUpDate",
-      key: "pickUpDate",
+      title: 'Total Price',
+      dataIndex: 'totalPrice',
+      key: 'totalPrice',
+      render: (price: number) => `₹${price}`,
     },
     {
-      title: "Drop Off Date",
-      dataIndex: "dropOffDate",
-      key: "dropOffDate",
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <Tag color={status === "delivered" ? "green" : "orange"}>
+          {status === "delivered" ? "Delivered" : "Pending"}
+        </Tag>
+      ),
     },
     {
-      title: "Pick Up Location",
-      dataIndex: "pickUpLocation",
-      key: "pickUpLocation",
-    },
-    {
-      title: "Drop Off Location",
-      dataIndex: "dropOffLocation",
-      key: "dropOffLocation",
-    },
-    {
-      title: "Total Price",
-      dataIndex: "totalPrice",
-      key: "totalPrice",
-      render: (price) => `₹${price}`,
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
+      title: 'Action',
+      key: 'action',
+      render: (_: any, record: any) => (
+        <Button 
+          onClick={() => handleBookingDelivery(record.id)}
+          disabled={record.status === "delivered"}
+        >
+          Mark as Delivered
+        </Button>
+      ),
     },
   ];
 
-  if (loading) return <p>Loading bookings...</p>;
-  if (error) {
-    message.error("Error fetching bookings: " + error.message);
-    return <p>Error loading bookings.</p>;
-  }
-
   return (
-    <div className={styles.bookingsPage}>
-      <Space style={{ marginBottom: 16 }} wrap>
-        <Input
-          placeholder="Search by Car Name"
-          value={carNameFilter}
-          onChange={(e) => setCarNameFilter(e.target.value)}
-          style={{ width: 200 }}
-        />
-        <Input
-          placeholder="Search by User ID"
-          value={userIdFilter}
-          onChange={(e) => setUserIdFilter(e.target.value)}
-          style={{ width: 200 }}
-        />
-        <Input
-          placeholder="Search by Manufacturer"
-          value={manufacturerFilter}
-          onChange={(e) => setManufacturerFilter(e.target.value)}
-          style={{ width: 200 }}
-        />
-        <RangePicker
-          onChange={(dates) => setDateRange(dates ? [dates[0].toISOString(), dates[1].toISOString()] : null)}
-          style={{ width: 300 }}
-        />
-        <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
-          Search
-        </Button>
-      </Space>
-
+    <div className={styles.bookingList}>
+      <div className={styles.header}>
+        <div className={styles.tabs}>
+          <Button type="primary">ALL ({bookings?.length || 0})</Button>
+          <Button>RETURN IN TRANSIT</Button>
+          <Button>RETURNS RECEIVED</Button>
+        </div>
+        <div className={styles.actions}>
+          <Dropdown overlay={menu}>
+            <Button>
+              {dateRange[0]} - {dateRange[1]} <DownOutlined />
+            </Button>
+          </Dropdown>
+          <Button type="primary">Request RTO</Button>
+        </div>
+      </div>
       <Table
+        className={styles.table}
         columns={columns}
-        dataSource={filteredData}
-        rowKey="id"
+        dataSource={bookings}
+        rowKey={(record: any) => record.id}
         pagination={{ pageSize: 10 }}
       />
     </div>
   );
 };
 
-export default BookingsPage;
+export default BookingsList;

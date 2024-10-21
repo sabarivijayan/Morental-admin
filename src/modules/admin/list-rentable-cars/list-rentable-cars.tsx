@@ -1,20 +1,37 @@
 "use client";
-import React, { useState } from "react";
-import { useQuery, useMutation } from "@apollo/client";
-import { Button, Image, Modal, Input, Select, Table, Dropdown } from "antd";
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation, useApolloClient } from "@apollo/client";
+import { Button, Image, Modal, Input, Select, Table, Dropdown, Space } from "antd";
 import Swal from "sweetalert2";
 import { DELETE_RENTABLE_CAR, UPDATE_RENTABLE_CAR } from "@/graphql/mutations/rentable-cars";
 import { GET_RENTABLE_CARS } from "@/graphql/queries/rentable-cars";
 import { RentableCarInput } from "@/interfaces/rentable-car";
-import { DownOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { DownOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
 import styles from "./list-rentable-cars.module.css";
+import { searchCars } from "@/lib/typesense";
+import { useAddCarToTypesense } from "@/services/rentable-cars-typesense";
 
 const ListRentableCars: React.FC = () => {
   const [selectedRentableCar, setSelectedRentableCar] = useState<RentableCarInput | null>(null);
   const [pricePerDay, setPricePerDay] = useState<number | null>(null);
   const [availableQuantity, setAvailableQuantity] = useState<number | null>(null);
+  
+  // New state for search and filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedTransmission, setSelectedTransmission] = useState("");
+  const [selectedFuelType, setSelectedFuelType] = useState("");
+  const [selectedSeats, setSelectedSeats] = useState("");
+  const [priceSorting, setPriceSorting] = useState<"asc" | "desc">("asc");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const { loading, error, data, refetch } = useQuery(GET_RENTABLE_CARS);
+  const { addCars } = useAddCarToTypesense();
+
+
+  const client = useApolloClient();
+  // Mutation handlers
   const [deleteRentableCar] = useMutation(DELETE_RENTABLE_CAR, {
     onCompleted: () => refetch(),
     onError: (err) => Swal.fire("Error!", err.message, "error"),
@@ -27,6 +44,33 @@ const ListRentableCars: React.FC = () => {
     },
     onError: (err) => Swal.fire("Error!", err.message, "error"),
   });
+
+  // Search handler
+  const handleSearch = async () => {
+    setIsSearching(true);
+    try {
+      const results = await searchCars(
+        searchQuery,
+        selectedType,
+        selectedTransmission,
+        selectedFuelType,
+        selectedSeats,
+        priceSorting
+      );
+      setSearchResults(results);
+    } catch (error) {
+      Swal.fire("Error!", "Failed to search cars", "error");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Effect to sync data with Typesense
+  useEffect(() => {
+    if (data?.getRentableCars) {
+      addCars(data.getRentableCars).catch(console.error);
+    }
+  }, [data?.getRentableCars]);
 
   const handleDelete = (id: string) => {
     Swal.fire({
@@ -91,6 +135,7 @@ const ListRentableCars: React.FC = () => {
       dataIndex: "pricePerDay",
       key: "pricePerDay",
       render: (price: number) => `$${price.toFixed(2)}`,
+      sorter: (a: any, b: any) => a.pricePerDay - b.pricePerDay,
     },
     {
       title: "Actions",
@@ -129,8 +174,88 @@ const ListRentableCars: React.FC = () => {
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Rentable Cars List</h1>
+
+      {/* Search and Filter Section */}
+      <div className={styles.searchSection}>
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <Input
+            placeholder="Search cars..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            prefix={<SearchOutlined />}
+          />
+          <Space wrap>
+            <Select
+              style={{ width: 200 }}
+              placeholder="Car Type"
+              value={selectedType}
+              onChange={setSelectedType}
+            >
+              <Select.Option value="">All Types</Select.Option>
+              <Select.Option value="SUV">SUV</Select.Option>
+              <Select.Option value="Sedan">Sedan</Select.Option>
+              <Select.Option value="Sports">Sports</Select.Option>
+            </Select>
+
+            <Select
+              style={{ width: 200 }}
+              placeholder="Transmission"
+              value={selectedTransmission}
+              onChange={setSelectedTransmission}
+            >
+              <Select.Option value="">All Transmissions</Select.Option>
+              <Select.Option value="Automatic">Automatic</Select.Option>
+              <Select.Option value="Manual">Manual</Select.Option>
+            </Select>
+
+            <Select
+              style={{ width: 200 }}
+              placeholder="Fuel Type"
+              value={selectedFuelType}
+              onChange={setSelectedFuelType}
+            >
+              <Select.Option value="">All Fuel Types</Select.Option>
+              <Select.Option value="Petrol">Petrol</Select.Option>
+              <Select.Option value="Diesel">Diesel</Select.Option>
+              <Select.Option value="Electric">Electric</Select.Option>
+            </Select>
+
+            <Select
+              style={{ width: 200 }}
+              placeholder="Number of Seats"
+              value={selectedSeats}
+              onChange={setSelectedSeats}
+            >
+              <Select.Option value="">All Seats</Select.Option>
+              <Select.Option value="2">2</Select.Option>
+              <Select.Option value="4">4</Select.Option>
+              <Select.Option value="5">5</Select.Option>
+              <Select.Option value="7">7</Select.Option>
+            </Select>
+
+            <Select
+              style={{ width: 200 }}
+              placeholder="Price Sorting"
+              value={priceSorting}
+              onChange={setPriceSorting}
+            >
+              <Select.Option value="asc">Price: Low to High</Select.Option>
+              <Select.Option value="desc">Price: High to Low</Select.Option>
+            </Select>
+
+            <Button type="primary" onClick={handleSearch} loading={isSearching}>
+              Search
+            </Button>
+          </Space>
+        </Space>
+      </div>
+
       <div className={styles.tableContainer}>
-        <Table columns={columns} dataSource={data?.getRentableCars} rowKey="id" />
+        <Table 
+          columns={columns} 
+          dataSource={searchResults.length > 0 ? searchResults : data?.getRentableCars} 
+          rowKey="id" 
+        />
       </div>
 
       {/* Rentable Car Update Modal */}
