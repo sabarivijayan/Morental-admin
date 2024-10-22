@@ -1,7 +1,7 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { useLazyQuery, useMutation } from "@apollo/client";
-import { Table, Spin, Result, Alert, Button, Tag, Dropdown, Menu } from "antd";
+import { Table, Spin, Result, Button, Tag, Dropdown, Menu } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import Cookies from "js-cookie";
 import styles from "./bookings-list.module.css";
@@ -28,11 +28,8 @@ const BookingsList: React.FC = () => {
 
   const [bookingDelivery] = useMutation(BOOKING_DELIVERY);
 
-  const [dateRange, setDateRange] = useState<[string, string]>(["Aug 20, 2022", "Oct 20, 2022"]);
-
   useEffect(() => {
     if (token) {
-      console.log("Fetching bookings with token:", token);
       fetchAllBookings({
         context: {
           headers: {
@@ -41,7 +38,6 @@ const BookingsList: React.FC = () => {
         },
       });
     } else {
-      console.error("No admin token found");
       setFetchError("No admin token found. Please log in again.");
     }
   }, [token, fetchAllBookings]);
@@ -92,7 +88,6 @@ const BookingsList: React.FC = () => {
         },
       });
       if (response.data.bookingDelivery.status) {
-        // Refetch the bookings to update the list
         fetchAllBookings({
           context: {
             headers: {
@@ -118,10 +113,25 @@ const BookingsList: React.FC = () => {
 
   const columns = [
     {
-      title: 'Car',
-      dataIndex: ['rentable', 'car', 'primaryImageUrl'],
-      key: 'car',
+      title: 'Car Name',
+      dataIndex: ['car', 'name'],
+      key: 'carName',
+      render: (name: string) => name || 'N/A',  // Fallback for missing names
     },
+    {
+      title: 'Car Image',
+      dataIndex: ['car', 'primaryImageUrl'],
+      key: 'carImage',
+      render: (imageUrl: string) => (
+        imageUrl ? (
+          <img
+            src={imageUrl}
+            alt="Car"
+            style={{ width: 100, height: 60, objectFit: "cover" }}
+          />
+        ) : 'No Image Available'  // Fallback for missing images
+      ),
+    },    
     {
       title: 'Pickup Date',
       dataIndex: 'pickUpDate',
@@ -166,21 +176,6 @@ const BookingsList: React.FC = () => {
 
   return (
     <div className={styles.bookingList}>
-      <div className={styles.header}>
-        <div className={styles.tabs}>
-          <Button type="primary">ALL ({bookings?.length || 0})</Button>
-          <Button>RETURN IN TRANSIT</Button>
-          <Button>RETURNS RECEIVED</Button>
-        </div>
-        <div className={styles.actions}>
-          <Dropdown overlay={menu}>
-            <Button>
-              {dateRange[0]} - {dateRange[1]} <DownOutlined />
-            </Button>
-          </Dropdown>
-          <Button type="primary">Request RTO</Button>
-        </div>
-      </div>
       <Table
         className={styles.table}
         columns={columns}

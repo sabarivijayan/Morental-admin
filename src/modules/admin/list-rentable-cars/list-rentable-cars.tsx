@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, useApolloClient } from "@apollo/client";
-import { Button, Image, Modal, Input, Select, Table, Dropdown, Space } from "antd";
+import { useQuery, useMutation } from "@apollo/client";
+import { Button, Image, Modal, Input, Table, Dropdown, Select } from "antd";
 import Swal from "sweetalert2";
 import { DELETE_RENTABLE_CAR, UPDATE_RENTABLE_CAR } from "@/graphql/mutations/rentable-cars";
 import { GET_RENTABLE_CARS } from "@/graphql/queries/rentable-cars";
@@ -15,22 +15,19 @@ const ListRentableCars: React.FC = () => {
   const [selectedRentableCar, setSelectedRentableCar] = useState<RentableCarInput | null>(null);
   const [pricePerDay, setPricePerDay] = useState<number | null>(null);
   const [availableQuantity, setAvailableQuantity] = useState<number | null>(null);
-  
-  // New state for search and filters
+
+  // State for Price Filter
+  const [minPrice, setMinPrice] = useState<number | null>(null);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
+
+  // State for search
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState("");
-  const [selectedTransmission, setSelectedTransmission] = useState("");
-  const [selectedFuelType, setSelectedFuelType] = useState("");
-  const [selectedSeats, setSelectedSeats] = useState("");
-  const [priceSorting, setPriceSorting] = useState<"asc" | "desc">("asc");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   const { loading, error, data, refetch } = useQuery(GET_RENTABLE_CARS);
   const { addCars } = useAddCarToTypesense();
 
-
-  const client = useApolloClient();
   // Mutation handlers
   const [deleteRentableCar] = useMutation(DELETE_RENTABLE_CAR, {
     onCompleted: () => refetch(),
@@ -45,18 +42,13 @@ const ListRentableCars: React.FC = () => {
     onError: (err) => Swal.fire("Error!", err.message, "error"),
   });
 
-  // Search handler
-  const handleSearch = async () => {
+  // Real-time search handler with price filter
+  const handleSearch = async (query: string, minPrice?: number, maxPrice?: number) => {
     setIsSearching(true);
+    setSearchQuery(query);
+
     try {
-      const results = await searchCars(
-        searchQuery,
-        selectedType,
-        selectedTransmission,
-        selectedFuelType,
-        selectedSeats,
-        priceSorting
-      );
+      const results = await searchCars(query, undefined, undefined, undefined, undefined, minPrice, maxPrice);
       setSearchResults(results);
     } catch (error) {
       Swal.fire("Error!", "Failed to search cars", "error");
@@ -71,6 +63,11 @@ const ListRentableCars: React.FC = () => {
       addCars(data.getRentableCars).catch(console.error);
     }
   }, [data?.getRentableCars]);
+
+  // Effect for automatic price filtering
+  useEffect(() => {
+    handleSearch(searchQuery, minPrice, maxPrice);
+  }, [minPrice, maxPrice, searchQuery]);
 
   const handleDelete = (id: string) => {
     Swal.fire({
@@ -175,79 +172,31 @@ const ListRentableCars: React.FC = () => {
     <div className={styles.container}>
       <h1 className={styles.title}>Rentable Cars List</h1>
 
-      {/* Search and Filter Section */}
+      {/* Search Section */}
       <div className={styles.searchSection}>
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <Input
+          placeholder="Search cars..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          prefix={<SearchOutlined />}
+          style={{ width: "100%" }}
+        />
+        {/* Price Filter Section */}
+        <div style={{ display: "flex", marginTop: "10px" }}>
           <Input
-            placeholder="Search cars..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            prefix={<SearchOutlined />}
+            placeholder="Min Price"
+            type="number"
+            value={minPrice || ""}
+            onChange={(e) => setMinPrice(Number(e.target.value))}
+            style={{ marginRight: "10px" }}
           />
-          <Space wrap>
-            <Select
-              style={{ width: 200 }}
-              placeholder="Car Type"
-              value={selectedType}
-              onChange={setSelectedType}
-            >
-              <Select.Option value="">All Types</Select.Option>
-              <Select.Option value="SUV">SUV</Select.Option>
-              <Select.Option value="Sedan">Sedan</Select.Option>
-              <Select.Option value="Sports">Sports</Select.Option>
-            </Select>
-
-            <Select
-              style={{ width: 200 }}
-              placeholder="Transmission"
-              value={selectedTransmission}
-              onChange={setSelectedTransmission}
-            >
-              <Select.Option value="">All Transmissions</Select.Option>
-              <Select.Option value="Automatic">Automatic</Select.Option>
-              <Select.Option value="Manual">Manual</Select.Option>
-            </Select>
-
-            <Select
-              style={{ width: 200 }}
-              placeholder="Fuel Type"
-              value={selectedFuelType}
-              onChange={setSelectedFuelType}
-            >
-              <Select.Option value="">All Fuel Types</Select.Option>
-              <Select.Option value="Petrol">Petrol</Select.Option>
-              <Select.Option value="Diesel">Diesel</Select.Option>
-              <Select.Option value="Electric">Electric</Select.Option>
-            </Select>
-
-            <Select
-              style={{ width: 200 }}
-              placeholder="Number of Seats"
-              value={selectedSeats}
-              onChange={setSelectedSeats}
-            >
-              <Select.Option value="">All Seats</Select.Option>
-              <Select.Option value="2">2</Select.Option>
-              <Select.Option value="4">4</Select.Option>
-              <Select.Option value="5">5</Select.Option>
-              <Select.Option value="7">7</Select.Option>
-            </Select>
-
-            <Select
-              style={{ width: 200 }}
-              placeholder="Price Sorting"
-              value={priceSorting}
-              onChange={setPriceSorting}
-            >
-              <Select.Option value="asc">Price: Low to High</Select.Option>
-              <Select.Option value="desc">Price: High to Low</Select.Option>
-            </Select>
-
-            <Button type="primary" onClick={handleSearch} loading={isSearching}>
-              Search
-            </Button>
-          </Space>
-        </Space>
+          <Input
+            placeholder="Max Price"
+            type="number"
+            value={maxPrice || ""}
+            onChange={(e) => setMaxPrice(Number(e.target.value))}
+          />
+        </div>
       </div>
 
       <div className={styles.tableContainer}>

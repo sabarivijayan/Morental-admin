@@ -1,58 +1,33 @@
-import { useMutation, gql } from '@apollo/client';
+import { useMutation } from '@apollo/client';
+import { ADD_CAR_TO_TYPESENSE } from '@/graphql/mutations/typesense';
 
-export const ADD_CAR_TO_TYPESENSE = gql`
-  mutation AddcarToTypesense($car: CarInput!) {
-    addcarToTypesense(car: $car)
-  }
-`;
-
-interface CarData {
-  id: string;
-  name: string;
-  year: string;
-  type: string;
-  description: string;
-  numberOfSeats: string;
-  transmissionType: string;
-  fuelType: string;
-  primaryImageUrl: string;
-  manufacturer: string;
-  pricePerDay: number;
-  availableQuantity: number;
-}
 
 export const useAddCarToTypesense = () => {
-  const [addCarToTypesenseMutation] = useMutation(ADD_CAR_TO_TYPESENSE);
+  const [addcarToTypesense] = useMutation(ADD_CAR_TO_TYPESENSE);
 
-  const addCars = async (cars: CarData[]) => {
-    for (const carData of cars) {
+  const addCars = async (cars: any[]) => {
+    for (const car of cars) {
       const document = {
-        id: carData.id,
-        pricePerDay: carData.pricePerDay,
-        availableQuantity: carData.availableQuantity,
-        car: {
-          name: carData.name,
-          year: carData.year,
-          type: carData.type,
-          description: carData.description,
-          numberOfSeats: carData.numberOfSeats,
-          transmissionType: carData.transmissionType,
-          fuelType: carData.fuelType,
-          primaryImageUrl: carData.primaryImageUrl,
-          manufacturer: {
-            name: carData.manufacturer
-          }
-        }
+        id: car.id,
+        name: car.car.name,
+        type: car.car.type,
+        pricePerDay: car.pricePerDay,
+        transmissionType: car.car.transmissionType,
+        fuelType: car.car.fuelType,
+        year: car.car.year,
+        availableQuantity: car.availableQuantity,
+        primaryImageUrl: car.car.primaryImageUrl,
+        manufacturer: car.car.manufacturer.name,
+        numberOfSeats: car.car.numberOfSeats,
+        description: car.car.description,
       };
 
       try {
-        await addCarToTypesenseMutation({
-          variables: { car: document }
-        });
-        console.log(`Car ${carData.name} added to Typesense!`);
+        await addcarToTypesense({ variables: { car: document } });
+        console.log(`Car ${car.car.name} added to Typesense!`);
       } catch (error) {
-        console.error(`Error adding car ${carData.name} to Typesense:`, error);
-        throw new Error(`Failed to add car ${carData.name} to Typesense.`);
+        console.error(`Error adding car ${car.car.name} to Typesense:`, error);
+        throw new Error(`Failed to add car ${car.car.name} to Typesense.`);
       }
     }
   };
