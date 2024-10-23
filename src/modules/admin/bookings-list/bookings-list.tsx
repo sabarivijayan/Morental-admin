@@ -114,13 +114,13 @@ const BookingsList: React.FC = () => {
   const columns = [
     {
       title: 'Car Name',
-      dataIndex: ['car', 'name'],
+      dataIndex: ['rentable','car', 'name'],
       key: 'carName',
       render: (name: string) => name || 'N/A',  // Fallback for missing names
     },
     {
       title: 'Car Image',
-      dataIndex: ['car', 'primaryImageUrl'],
+      dataIndex: ['rentable','car', 'primaryImageUrl'],
       key: 'carImage',
       render: (imageUrl: string) => (
         imageUrl ? (
