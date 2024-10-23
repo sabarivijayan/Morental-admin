@@ -7,6 +7,8 @@ import Cookies from "js-cookie";
 import styles from "./bookings-list.module.css";
 import { FETCH_ALL_BOOKINGS } from "@/graphql/queries/bookings";
 import { BOOKING_DELIVERY } from "@/graphql/mutations/bookings";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const BookingsList: React.FC = () => {
   const token = Cookies.get("adminToken");
@@ -103,13 +105,27 @@ const BookingsList: React.FC = () => {
     }
   };
 
-  const menu = (
-    <Menu>
-      <Menu.Item key="1">Last 30 days</Menu.Item>
-      <Menu.Item key="2">Last 3 months</Menu.Item>
-      <Menu.Item key="3">Last 6 months</Menu.Item>
-    </Menu>
-  );
+  const generatePDF = () => {
+    const doc = new jsPDF();
+
+    // Add title to the PDF
+    doc.text("Bookings Report", 20, 10);
+
+    // Auto table generation
+    autoTable(doc,{
+      head: [['Car Name', 'Pickup Date', 'Dropoff Date', 'Total Price', 'Status']],
+      body: bookings.map(booking => [
+        booking.rentable?.car?.name || 'N/A',
+        new Date(booking.pickUpDate).toLocaleDateString(),
+        new Date(booking.dropOffDate).toLocaleDateString(),
+        `₹${booking.totalPrice}`,
+        booking.status === 'delivered' ? 'Delivered' : 'Pending'
+      ]),
+    });
+
+    // Save the PDF
+    doc.save("bookings_report.pdf");
+  };
 
   const columns = [
     {
@@ -176,6 +192,9 @@ const BookingsList: React.FC = () => {
 
   return (
     <div className={styles.bookingList}>
+      <Button type="primary" onClick={generatePDF}>
+        Download PDF
+      </Button>
       <Table
         className={styles.table}
         columns={columns}
