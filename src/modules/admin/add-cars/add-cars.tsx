@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MANUFACTURERS } from "@/graphql/queries/manufacture";
-import { ADD_CARS } from "@/graphql/mutations/cars";
+import { ADD_CARS, ADD_CAR_BY_EXCEL } from "@/graphql/mutations/cars";
 import { Input, Button, Select, Form, Upload, message } from "antd";
 import {
   Manufacturer,
@@ -14,6 +14,7 @@ import Swal from "sweetalert2";
 import { v4 as uuidv4 } from "uuid";
 import styles from "./add-cars.module.css";
 import { useRouter } from "next/navigation";
+import { UploadOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -26,6 +27,7 @@ const AddCars = () => {
     data: manufacturersData,
   } = useQuery<GetManufacturersResponse>(GET_MANUFACTURERS);
   const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     type: "",
@@ -69,6 +71,53 @@ const AddCars = () => {
       Swal.fire("Error!", error.message, "error");
     },
   });
+
+  const [addCarByExcel] = useMutation(ADD_CAR_BY_EXCEL, {
+    onCompleted: (data) => {
+      const {
+        success,
+        message: responseMessage,
+        addedCarsCount,
+      } = data.addCarByExcel;
+      if (success) {
+        message.success(`Added ${addedCarsCount} cars successfully.`);
+      } else {
+        message.error(responseMessage);
+      }
+      setLoading(false);
+    },
+    onError: (error) => {
+      message.error(`Error: ${error.message}`);
+      setLoading(false);
+    },
+  });
+
+  const handleExcelUpload = async () => {
+    if (!file) {
+      message.warning("Please select an Excel file to upload.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await addCarByExcel({
+        variables: {
+          excelFile: file,
+        },
+      });
+    } catch (error) {
+      console.error("Error uploading Excel file:", error);
+      setLoading(false);
+    }
+  };
+
+  const handleFileChange = (info: any) => {
+    const fileList = info.fileList;
+    if (fileList.length > 0) {
+      setFile(fileList[0].originFileObj); // Store the selected Excel file
+    } else {
+      setFile(null);
+    }
+  };
 
   const handleChange = (value: any, fieldName: string) => {
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
@@ -297,6 +346,32 @@ const AddCars = () => {
             className={styles.uploadButton}
           >
             <Button>Click to Upload secondary Images</Button>
+          </Upload>
+        </Form.Item>
+
+        <Form.Item
+          label="Upload cars via Excel sheet"
+          className={styles.formItem}
+        >
+          <Upload
+            listType="picture"
+            multiple
+            accept=".xlsx, .xls"
+            beforeUpload={() => false}
+            onChange={handleFileChange}
+            className={styles.uploadButton}
+          >
+            <Button
+              icon={<UploadOutlined />} // Use Ant Design upload icon
+              style={{
+                backgroundColor: "#217346", // Excel green color
+                color: "#fff",
+                borderColor: "#217346",
+                fontWeight: "bold", // To give the button a solid look
+              }}
+            >
+              Select Excel File
+            </Button>
           </Upload>
         </Form.Item>
 
