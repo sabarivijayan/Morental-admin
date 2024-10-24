@@ -52,10 +52,6 @@ const Sidebar: FC<SidebarProps> = ({ isVisible, onClose }) => {
             <Image src="/icons/driving.svg" alt="Add Rentable Cars" width={20} height={20} />
             Rentable Cars
           </li>
-          <li className={styles.menuItem} onClick={() => { router.push('/list-location'); onClose(); }}>
-            <Image src="/icons/location.svg" alt="Locations" width={20} height={20} />
-            Locations
-          </li>
           <li className={styles.menuItem} onClick={() => { router.push('/booked-cars'); onClose(); }}>
             <Image src="/icons/smart-car.svg" alt="Booked Cars" width={20} height={20} />
             Booked Cars

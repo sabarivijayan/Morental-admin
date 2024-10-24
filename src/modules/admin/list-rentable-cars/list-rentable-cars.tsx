@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { Button, Image, Modal, Input, Table, Dropdown, Select } from "antd";
+import { Button, Image, Modal, Input, Table, Dropdown, Select, Row, Col, Space } from "antd";
 import Swal from "sweetalert2";
 import { DELETE_RENTABLE_CAR, UPDATE_RENTABLE_CAR } from "@/graphql/mutations/rentable-cars";
 import { GET_RENTABLE_CARS } from "@/graphql/queries/rentable-cars";
@@ -42,16 +42,30 @@ const ListRentableCars: React.FC = () => {
     onError: (err) => Swal.fire("Error!", err.message, "error"),
   });
 
-  // Real-time search handler with price filter
-  const handleSearch = async (query: string, minPrice?: number, maxPrice?: number) => {
+  // Search handler independent of the price filter
+  const handleSearch = async (query: string) => {
     setIsSearching(true);
     setSearchQuery(query);
 
     try {
-      const results = await searchCars(query, undefined, undefined, undefined, undefined, minPrice, maxPrice);
+      const results = await searchCars(query);
       setSearchResults(results);
     } catch (error) {
       Swal.fire("Error!", "Failed to search cars", "error");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Price filter handler
+  const handlePriceFilter = async (minPrice?: number, maxPrice?: number) => {
+    setIsSearching(true);
+
+    try {
+      const results = await searchCars(searchQuery, undefined, undefined, undefined, undefined, minPrice, maxPrice);
+      setSearchResults(results);
+    } catch (error) {
+      Swal.fire("Error!", "Failed to filter cars by price", "error");
     } finally {
       setIsSearching(false);
     }
@@ -63,11 +77,6 @@ const ListRentableCars: React.FC = () => {
       addCars(data.getRentableCars).catch(console.error);
     }
   }, [data?.getRentableCars]);
-
-  // Effect for automatic price filtering
-  useEffect(() => {
-    handleSearch(searchQuery, minPrice, maxPrice);
-  }, [minPrice, maxPrice, searchQuery]);
 
   const handleDelete = (id: string) => {
     Swal.fire({
@@ -172,40 +181,43 @@ const ListRentableCars: React.FC = () => {
     <div className={styles.container}>
       <h1 className={styles.title}>Rentable Cars List</h1>
 
-      {/* Search Section */}
-      <div className={styles.searchSection}>
-        <Input
-          placeholder="Search cars..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          prefix={<SearchOutlined />}
-          style={{ width: "100%" }}
-        />
-        {/* Price Filter Section */}
-        <div style={{ display: "flex", marginTop: "10px" }}>
+      {/* Search and Filter Section */}
+      <Row gutter={16} style={{ marginBottom: 20 }}>
+        <Col span={16}>
+          <Input
+            placeholder="Search cars..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            prefix={<SearchOutlined />}
+            style={{ width: "100%" }}
+          />
+        </Col>
+        <Col span={4}>
           <Input
             placeholder="Min Price"
             type="number"
             value={minPrice || ""}
             onChange={(e) => setMinPrice(Number(e.target.value))}
-            style={{ marginRight: "10px" }}
+            onBlur={() => handlePriceFilter(minPrice, maxPrice)}
           />
+        </Col>
+        <Col span={4}>
           <Input
             placeholder="Max Price"
             type="number"
             value={maxPrice || ""}
             onChange={(e) => setMaxPrice(Number(e.target.value))}
+            onBlur={() => handlePriceFilter(minPrice, maxPrice)}
           />
-        </div>
-      </div>
+        </Col>
+      </Row>
 
-      <div className={styles.tableContainer}>
-        <Table 
-          columns={columns} 
-          dataSource={searchResults.length > 0 ? searchResults : data?.getRentableCars} 
-          rowKey="id" 
-        />
-      </div>
+      <Table
+        columns={columns}
+        dataSource={searchResults.length > 0 ? searchResults : data?.getRentableCars}
+        rowKey="id"
+        pagination={{ pageSize: 10 }}
+      />
 
       {/* Rentable Car Update Modal */}
       <Modal
@@ -216,32 +228,35 @@ const ListRentableCars: React.FC = () => {
         centered
       >
         <div className={styles.modalBody}>
-          <div>
-            <label htmlFor="quantity" style={{ fontWeight: "600" }}>Available Quantity</label>
-            <Select
-              id="quantity"
-              value={availableQuantity}
-              onChange={setAvailableQuantity}
-              style={{ width: "100%" }}
-              placeholder="Select quantity"
-            >
-              {Array.from({ length: selectedRentableCar?.car.quantity || 0 }).map((_, index) => (
-                <Select.Option key={index + 1} value={index + 1}>
-                  {index + 1}
-                </Select.Option>
-              ))}
-            </Select>
-          </div>
-          <div style={{ marginTop: "20px" }}>
-            <label htmlFor="price" style={{ fontWeight: "600" }}>Price per Day</label>
-            <Input
-              id="price"
-              type="number"
-              value={pricePerDay || ""}
-              onChange={(e) => setPricePerDay(Number(e.target.value))}
-              placeholder="Enter price"
-            />
-          </div>
+          <Space direction="vertical" size="large">
+            <div>
+              <label htmlFor="quantity" style={{ fontWeight: "600" }}>Available Quantity</label>
+              <Select
+                id="quantity"
+                value={availableQuantity}
+                onChange={setAvailableQuantity}
+                style={{ width: "100%" }}
+                placeholder="Select quantity"
+              >
+                {Array.from({ length: selectedRentableCar?.car.quantity || 0 }).map((_, index) => (
+                  <Select.Option key={index + 1} value={index + 1}>
+                    {index + 1}
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+
+            <div>
+              <label htmlFor="price" style={{ fontWeight: "600" }}>Price Per Day</label>
+              <Input
+                id="price"
+                type="number"
+                value={pricePerDay || ""}
+                onChange={(e) => setPricePerDay(Number(e.target.value))}
+                placeholder="Enter price per day"
+              />
+            </div>
+          </Space>
         </div>
       </Modal>
     </div>
