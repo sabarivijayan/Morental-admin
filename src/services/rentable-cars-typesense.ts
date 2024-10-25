@@ -24,7 +24,6 @@ export const useAddCarToTypesense = () => {
 
       try {
         await addcarToTypesense({ variables: { car: document } });
-        console.log(`Car ${car.car.name} added to Typesense!`);
       } catch (error) {
         console.error(`Error adding car ${car.car.name} to Typesense:`, error);
         throw new Error(`Failed to add car ${car.car.name} to Typesense.`);

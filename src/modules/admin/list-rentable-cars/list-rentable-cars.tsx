@@ -140,7 +140,7 @@ const ListRentableCars: React.FC = () => {
       title: "Price per Day",
       dataIndex: "pricePerDay",
       key: "pricePerDay",
-      render: (price: number) => `$${price.toFixed(2)}`,
+      render: (price: number) => `₹${price.toFixed(2)}`,
       sorter: (a: any, b: any) => a.pricePerDay - b.pricePerDay,
     },
     {
@@ -196,7 +196,7 @@ const ListRentableCars: React.FC = () => {
           <Input
             placeholder="Min Price"
             type="number"
-            value={minPrice || ""}
+            value={minPrice ?? ""}
             onChange={(e) => setMinPrice(Number(e.target.value))}
             onBlur={() => handlePriceFilter(minPrice, maxPrice)}
           />
@@ -205,7 +205,7 @@ const ListRentableCars: React.FC = () => {
           <Input
             placeholder="Max Price"
             type="number"
-            value={maxPrice || ""}
+            value={maxPrice ?? ""}
             onChange={(e) => setMaxPrice(Number(e.target.value))}
             onBlur={() => handlePriceFilter(minPrice, maxPrice)}
           />
@@ -221,7 +221,7 @@ const ListRentableCars: React.FC = () => {
 
       {/* Rentable Car Update Modal */}
       <Modal
-        title={`Edit ${selectedRentableCar?.car.name || ""}`}
+        title={`Edit ${selectedRentableCar?.car.name ?? ""}`}
         open={Boolean(selectedRentableCar)}
         onCancel={() => setSelectedRentableCar(null)}
         onOk={handleUpdateRentableCar}
@@ -238,7 +238,7 @@ const ListRentableCars: React.FC = () => {
                 style={{ width: "100%" }}
                 placeholder="Select quantity"
               >
-                {Array.from({ length: selectedRentableCar?.car.quantity || 0 }).map((_, index) => (
+                {Array.from({ length: selectedRentableCar?.car.quantity ?? 0 }).map((_, index) => (
                   <Select.Option key={index + 1} value={index + 1}>
                     {index + 1}
                   </Select.Option>
@@ -251,7 +251,7 @@ const ListRentableCars: React.FC = () => {
               <Input
                 id="price"
                 type="number"
-                value={pricePerDay || ""}
+                value={pricePerDay ?? ""}
                 onChange={(e) => setPricePerDay(Number(e.target.value))}
                 placeholder="Enter price per day"
               />

@@ -172,7 +172,7 @@ const ListCars: React.FC = () => {
 
       {/* Rentable Modal */}
       <Modal
-        title={`Do you want to add ${selectedRentableCar?.name || ""} to Rentable?`}
+        title={`Do you want to add ${selectedRentableCar?.name ?? ""} to Rentable?`}
         open={Boolean(selectedRentableCar)}
         onCancel={() => setSelectedRentableCar(null)}
         onOk={handleRentableSubmit}
@@ -186,7 +186,7 @@ const ListCars: React.FC = () => {
               marginBottom: "10px",
             }}
           >
-            {selectedRentableCar?.name || "New Rentable Car"}
+            {selectedRentableCar?.name ?? "New Rentable Car"}
           </h2>
         </div>
 
@@ -209,7 +209,7 @@ const ListCars: React.FC = () => {
               style={{ width: "100%" }}
             >
               {Array.from({
-                length: Number(selectedRentableCar?.quantity || 0),
+                length: Number(selectedRentableCar?.quantity ?? 0),
               }).map((_, index) => (
                 <Select.Option key={index + 1} value={index + 1}>
                   {index + 1}
@@ -230,7 +230,7 @@ const ListCars: React.FC = () => {
               className={styles.modalInput}
               type="number"
               placeholder="Enter price"
-              value={pricePerDay || ""}
+              value={pricePerDay ?? ""}
               onChange={(e) => setPricePerDay(Number(e.target.value))}
               style={{ width: "100%" }}
             />
