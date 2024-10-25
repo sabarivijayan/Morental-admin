@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { GET_MANUFACTURERS } from '@/graphql/queries/manufacture';
 import { DELETE_MANUFACTURER } from '@/graphql/mutations/manufacture';
-import { Table, Button, Popconfirm, message, Spin } from 'antd';
+import { Table, Button, Popconfirm, message, Spin, Empty } from 'antd';
 import { useRouter } from 'next/navigation';
 import { Manufacturer } from '@/interfaces/manufacturer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -66,6 +66,7 @@ const ManufacturerList: React.FC = () => {
   if (loading) {
     return <Spin size="default" className={styles.spin} />;
   }
+
   if (error) {
     return <p>Error fetching the manufacturers: {error.message}</p>;
   }
@@ -73,15 +74,18 @@ const ManufacturerList: React.FC = () => {
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Manufacturers List</h1>
-      <Button  onClick={() => router.push('/add-manufacturer')} className={styles.addButton}>
+      <Button onClick={() => router.push('/add-manufacturer')} className={styles.addButton}>
         Add Manufacturer
       </Button>
 
       <Table
-        dataSource={data.getManufacturers}
+        dataSource={data?.getManufacturers?.length ? data.getManufacturers : []}
         columns={columns}
         rowKey="id"
         pagination={{ pageSize: 10 }}
+        locale={{
+          emptyText: <Empty description="No manufacturers available. Click 'Add Manufacturer' to add new entries." />,
+        }}
         className={styles.table}
       />
 

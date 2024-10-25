@@ -14,18 +14,13 @@ import { ADD_RENTABLE_CAR } from "@/graphql/mutations/rentable-cars";
 import { DELETE_CAR } from "@/graphql/mutations/cars";
 import { Car } from "@/interfaces/car";
 import { GET_CARS } from "@/graphql/queries/cars";
-import styles from "./list-cars.module.css"; // Import the CSS module
-
+import styles from "./list-cars.module.css";
 
 const ListCars: React.FC = () => {
   const router = useRouter();
-  const [selectedRentableCar, setSelectedRentableCar] = useState<Car | null>(
-    null
-  );
+  const [selectedRentableCar, setSelectedRentableCar] = useState<Car | null>(null);
   const [pricePerDay, setPricePerDay] = useState<number | null>(null);
-  const [availableQuantity, setAvailableQuantity] = useState<number | null>(
-    null
-  );
+  const [availableQuantity, setAvailableQuantity] = useState<number | null>(null);
 
   const { loading, error, data, refetch } = useQuery(GET_CARS);
   const [deleteCar] = useMutation(DELETE_CAR, {
@@ -71,11 +66,7 @@ const ListCars: React.FC = () => {
         },
       });
     } else {
-      Swal.fire(
-        "Error!",
-        "Please provide both price per day and available quantity.",
-        "error"
-      );
+      Swal.fire("Error!", "Please provide both price per day and available quantity.", "error");
     }
   };
 
@@ -151,23 +142,22 @@ const ListCars: React.FC = () => {
     },
   ];
 
-  if (loading) return <p>Loading cars...</p>;
-  if (error) return <p>Error loading cars: {error.message}</p>;
-
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Car List</h1>
-        <Button
-          className={styles.addCarButton}
-          onClick={() => router.push("add-cars")}
-        >
+        <Button className={styles.addCarButton} onClick={() => router.push("add-cars")}>
           Add Car
         </Button>
       </div>
 
       <div className={styles.tableContainer}>
-        <Table columns={columns} dataSource={data?.getCars} rowKey="id" />
+        <Table
+          columns={columns}
+          dataSource={data?.getCars || []}
+          rowKey="id"
+          locale={{ emptyText: "No cars available. Please add new cars!" }}
+        />
       </div>
 
       {/* Rentable Modal */}
@@ -179,25 +169,13 @@ const ListCars: React.FC = () => {
         centered
       >
         <div className={styles.modalHeader}>
-          <h2
-            style={{
-              textAlign: "center",
-              fontWeight: "bold",
-              marginBottom: "10px",
-            }}
-          >
+          <h2 style={{ textAlign: "center", fontWeight: "bold", marginBottom: "10px" }}>
             {selectedRentableCar?.name ?? "New Rentable Car"}
           </h2>
         </div>
 
-        <div
-          className={styles.modalBody}
-          style={{ display: "grid", gap: "20px" }}
-        >
-          <div
-            className={styles.selectContainer}
-            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-          >
+        <div className={styles.modalBody} style={{ display: "grid", gap: "20px" }}>
+          <div className={styles.selectContainer} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <label htmlFor="quantity" style={{ fontWeight: "600" }}>
               Available Quantity
             </label>
@@ -208,9 +186,7 @@ const ListCars: React.FC = () => {
               onChange={setAvailableQuantity}
               style={{ width: "100%" }}
             >
-              {Array.from({
-                length: Number(selectedRentableCar?.quantity ?? 0),
-              }).map((_, index) => (
+              {Array.from({ length: Number(selectedRentableCar?.quantity ?? 0) }).map((_, index) => (
                 <Select.Option key={index + 1} value={index + 1}>
                   {index + 1}
                 </Select.Option>
@@ -218,10 +194,7 @@ const ListCars: React.FC = () => {
             </Select>
           </div>
 
-          <div
-            className={styles.inputContainer}
-            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-          >
+          <div className={styles.inputContainer} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <label htmlFor="price" style={{ fontWeight: "600" }}>
               Price per Day
             </label>
