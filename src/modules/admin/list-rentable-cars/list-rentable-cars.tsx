@@ -28,16 +28,17 @@ const ListRentableCars: React.FC = () => {
   const { loading, error, data, refetch } = useQuery(GET_RENTABLE_CARS);
   const { addCars } = useAddCarToTypesense();
 
-  // Mutation handlers
+  // Mutation handlers for deleting and updating rentable cars
   const [deleteRentableCar] = useMutation(DELETE_RENTABLE_CAR, {
-    onCompleted: () => refetch(),
+    onCompleted: () => refetch(), // Refetch cars after deletion
     onError: (err) => Swal.fire("Error!", err.message, "error"),
   });
+
   const [updateRentableCar] = useMutation(UPDATE_RENTABLE_CAR, {
     onCompleted: () => {
       Swal.fire("Success!", "Car updated successfully.", "success");
-      refetch();
-      setSelectedRentableCar(null);
+      refetch(); // Refetch cars after updating
+      setSelectedRentableCar(null); // Reset selected car
     },
     onError: (err) => Swal.fire("Error!", err.message, "error"),
   });
@@ -48,7 +49,7 @@ const ListRentableCars: React.FC = () => {
     setSearchQuery(query);
 
     try {
-      const results = await searchCars(query);
+      const results = await searchCars(query); // Perform search using Typesense
       setSearchResults(results);
     } catch (error) {
       Swal.fire("Error!", "Failed to search cars", "error");
@@ -62,7 +63,7 @@ const ListRentableCars: React.FC = () => {
     setIsSearching(true);
 
     try {
-      const results = await searchCars(searchQuery, undefined, undefined, undefined, undefined, minPrice, maxPrice);
+      const results = await searchCars(searchQuery, undefined, undefined, undefined, undefined, minPrice, maxPrice); // Filter based on price
       setSearchResults(results);
     } catch (error) {
       Swal.fire("Error!", "Failed to filter cars by price", "error");
@@ -71,13 +72,14 @@ const ListRentableCars: React.FC = () => {
     }
   };
 
-  // Effect to sync data with Typesense
+  // Effect to sync data with Typesense whenever new cars are fetched
   useEffect(() => {
     if (data?.getRentableCars) {
       addCars(data.getRentableCars).catch(console.error);
     }
   }, [data?.getRentableCars]);
 
+  // Function to confirm deletion of a car
   const handleDelete = (id: string) => {
     Swal.fire({
       title: "Are you sure?",
@@ -89,18 +91,20 @@ const ListRentableCars: React.FC = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        deleteRentableCar({ variables: { id } });
+        deleteRentableCar({ variables: { id } }); // Delete car
         Swal.fire("Deleted!", "The car has been deleted.", "success");
       }
     });
   };
 
+  // Prepare for editing a selected rentable car
   const handleEditRentableCar = (car: RentableCarInput) => {
     setSelectedRentableCar(car);
     setPricePerDay(car.pricePerDay);
     setAvailableQuantity(car.availableQuantity);
   };
 
+  // Update the selected rentable car with new values
   const handleUpdateRentableCar = () => {
     if (selectedRentableCar && pricePerDay && availableQuantity) {
       updateRentableCar({
@@ -152,14 +156,14 @@ const ListRentableCars: React.FC = () => {
             key: "edit",
             label: "Edit Car",
             icon: <EditOutlined />,
-            onClick: () => handleEditRentableCar(record),
+            onClick: () => handleEditRentableCar(record), // Edit action
           },
           {
             key: "delete",
             label: "Delete Car",
             icon: <DeleteOutlined />,
             danger: true,
-            onClick: () => handleDelete(record.id),
+            onClick: () => handleDelete(record.id), // Delete action
           },
         ];
 
@@ -174,8 +178,8 @@ const ListRentableCars: React.FC = () => {
     },
   ];
 
-  if (loading) return <p>Loading rentable cars...</p>;
-  if (error) return <p>Error loading rentable cars: {error.message}</p>;
+  if (loading) return <p>Loading rentable cars...</p>; // Loading state
+  if (error) return <p>Error loading rentable cars: {error.message}</p>; // Error state
 
   return (
     <div className={styles.container}>
@@ -187,7 +191,7 @@ const ListRentableCars: React.FC = () => {
           <Input
             placeholder="Search cars..."
             value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)} // Trigger search on input change
             prefix={<SearchOutlined />}
             style={{ width: "100%" }}
           />
@@ -197,8 +201,8 @@ const ListRentableCars: React.FC = () => {
             placeholder="Min Price"
             type="number"
             value={minPrice ?? ""}
-            onChange={(e) => setMinPrice(Number(e.target.value))}
-            onBlur={() => handlePriceFilter(minPrice, maxPrice)}
+            onChange={(e) => setMinPrice(Number(e.target.value))} // Update minimum price
+            onBlur={() => handlePriceFilter(minPrice, maxPrice)} // Apply price filter on blur
           />
         </Col>
         <Col span={4}>
@@ -206,15 +210,15 @@ const ListRentableCars: React.FC = () => {
             placeholder="Max Price"
             type="number"
             value={maxPrice ?? ""}
-            onChange={(e) => setMaxPrice(Number(e.target.value))}
-            onBlur={() => handlePriceFilter(minPrice, maxPrice)}
+            onChange={(e) => setMaxPrice(Number(e.target.value))} // Update maximum price
+            onBlur={() => handlePriceFilter(minPrice, maxPrice)} // Apply price filter on blur
           />
         </Col>
       </Row>
 
       <Table
         columns={columns}
-        dataSource={searchResults.length > 0 ? searchResults : data?.getRentableCars}
+        dataSource={searchResults.length > 0 ? searchResults : data?.getRentableCars} // Show search results or all cars
         rowKey="id"
         pagination={{ pageSize: 10 }}
       />
@@ -222,9 +226,9 @@ const ListRentableCars: React.FC = () => {
       {/* Rentable Car Update Modal */}
       <Modal
         title={`Edit ${selectedRentableCar?.car.name ?? ""}`}
-        open={Boolean(selectedRentableCar)}
-        onCancel={() => setSelectedRentableCar(null)}
-        onOk={handleUpdateRentableCar}
+        open={Boolean(selectedRentableCar)} // Show modal if a car is selected for editing
+        onCancel={() => setSelectedRentableCar(null)} // Close modal
+        onOk={handleUpdateRentableCar} // Handle update on OK
         centered
       >
         <div className={styles.modalBody}>
@@ -234,7 +238,7 @@ const ListRentableCars: React.FC = () => {
               <Select
                 id="quantity"
                 value={availableQuantity}
-                onChange={setAvailableQuantity}
+                onChange={setAvailableQuantity} // Update available quantity
                 style={{ width: "100%" }}
                 placeholder="Select quantity"
               >
@@ -252,7 +256,7 @@ const ListRentableCars: React.FC = () => {
                 id="price"
                 type="number"
                 value={pricePerDay ?? ""}
-                onChange={(e) => setPricePerDay(Number(e.target.value))}
+                onChange={(e) => setPricePerDay(Number(e.target.value))} // Update price per day
                 placeholder="Enter price per day"
               />
             </div>

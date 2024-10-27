@@ -1,8 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useLazyQuery, useMutation } from "@apollo/client";
-import { Table, Spin, Result, Button, Tag, Dropdown, Menu } from "antd";
-import { DownOutlined } from "@ant-design/icons";
+import { Table, Spin, Result, Button, Tag } from "antd";
 import Cookies from "js-cookie";
 import styles from "./bookings-list.module.css";
 import { FETCH_ALL_BOOKINGS } from "@/graphql/queries/bookings";
@@ -14,6 +13,7 @@ const BookingsList: React.FC = () => {
   const token = Cookies.get("adminToken");
   const [fetchError, setFetchError] = useState<string | null>(null);
 
+  // Lazy query to fetch all bookings
   const [fetchAllBookings, { loading, data, error }] = useLazyQuery(FETCH_ALL_BOOKINGS, {
     onCompleted: (data) => {
       if (!data.fetchAllBookings.status) {
@@ -58,11 +58,7 @@ const BookingsList: React.FC = () => {
         status="error"
         title="Failed to fetch bookings"
         subTitle={fetchError}
-        extra={[
-          <Button key="retry" onClick={() => fetchAllBookings()}>
-            Try Again
-          </Button>,
-        ]}
+        extra={[<Button key="retry" onClick={() => fetchAllBookings()}>Try Again</Button>]}
       />
     );
   }
@@ -79,6 +75,7 @@ const BookingsList: React.FC = () => {
     );
   }
 
+  // Function to handle marking a booking as delivered
   const handleBookingDelivery = async (bookingId: string) => {
     try {
       const response = await bookingDelivery({
@@ -105,6 +102,7 @@ const BookingsList: React.FC = () => {
     }
   };
 
+  // Function to generate PDF report of bookings
   const generatePDF = () => {
     const doc = new jsPDF();
 
@@ -112,7 +110,7 @@ const BookingsList: React.FC = () => {
     doc.text("Bookings Report", 20, 10);
 
     // Auto table generation
-    autoTable(doc,{
+    autoTable(doc, {
       head: [['Car Name', 'Pickup Date', 'Dropoff Date', 'Total Price', 'Status']],
       body: bookings.map(booking => [
         booking.rentable?.car?.name || 'N/A',
@@ -130,13 +128,13 @@ const BookingsList: React.FC = () => {
   const columns = [
     {
       title: 'Car Name',
-      dataIndex: ['rentable','car', 'name'],
+      dataIndex: ['rentable', 'car', 'name'],
       key: 'carName',
       render: (name: string) => name || 'N/A',  // Fallback for missing names
     },
     {
       title: 'Car Image',
-      dataIndex: ['rentable','car', 'primaryImageUrl'],
+      dataIndex: ['rentable', 'car', 'primaryImageUrl'],
       key: 'carImage',
       render: (imageUrl: string) => (
         imageUrl ? (
@@ -147,7 +145,7 @@ const BookingsList: React.FC = () => {
           />
         ) : 'No Image Available'  // Fallback for missing images
       ),
-    },    
+    },
     {
       title: 'Pickup Date',
       dataIndex: 'pickUpDate',

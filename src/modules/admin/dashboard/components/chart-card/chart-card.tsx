@@ -14,6 +14,7 @@ interface DashboardCardProps {
   data: DataItem[];
 }
 
+// Define color palette for the pie chart
 const COLORS = ['#0D3559', '#175D9C', '#2185DE', '#63A9E8', '#A6CEF2'];
 
 const DashboardCard: React.FC<DashboardCardProps> = ({ title, total, data }) => {
@@ -51,7 +52,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ title, total, data }) => 
           <div key={item.name} className={styles.legendItem}>
             <span
               className={styles.legendColor}
-              style={{ backgroundColor: COLORS[index % COLORS.length] }}
+              style={{ backgroundColor: COLORS[index % COLORS.length] }} // Set legend color based on index
             />
             <span className={styles.legendName}>{item.name}</span>
             <span className={styles.legendValue}>{item.value.toLocaleString()}</span>

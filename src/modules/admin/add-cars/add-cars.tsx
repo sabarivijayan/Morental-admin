@@ -19,15 +19,18 @@ import { UploadOutlined } from "@ant-design/icons";
 const { Option } = Select;
 
 const AddCars = () => {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm(); // Form instance for handling form data
   const router = useRouter();
+  
+  // Query to get manufacturers
   const {
     loading: loadingManufacturers,
     error: errorManufacturers,
     data: manufacturersData,
   } = useQuery<GetManufacturersResponse>(GET_MANUFACTURERS);
-  const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  
+  const [loading, setLoading] = useState(false); // State for loading indication
+  const [file, setFile] = useState<File | null>(null); // State for uploaded Excel file
   const [formData, setFormData] = useState<FormData>({
     name: "",
     type: "",
@@ -46,10 +49,12 @@ const AddCars = () => {
   const years = Array.from(
     { length: currentYear - 1979 },
     (_, i) => currentYear - i
-  ); // List from 1980 to current year
+  ); // List of years from 1980 to current year
 
+  // Mutation for adding a car
   const [addCar] = useMutation(ADD_CARS, {
     onCompleted: () => {
+      // Reset form data upon successful submission
       setFormData({
         name: "",
         type: "",
@@ -64,14 +69,15 @@ const AddCars = () => {
         year: "",
       });
       Swal.fire("Success!", "Car has been added successfully.", "success");
-      form.resetFields();
-      router.refresh();
+      form.resetFields(); // Reset the form fields
+      router.refresh(); // Refresh the page
     },
     onError: (error) => {
       Swal.fire("Error!", error.message, "error");
     },
   });
 
+  // Mutation for adding cars via Excel
   const [addCarByExcel] = useMutation(ADD_CAR_BY_EXCEL, {
     onCompleted: (data) => {
       const {
@@ -92,12 +98,13 @@ const AddCars = () => {
     },
   });
 
+  // Handler for Excel file upload
   const handleExcelUpload = async () => {
     if (!file) {
       message.warning("Please select an Excel file to upload.");
       return;
     }
-    setLoading(true);
+    setLoading(true); // Set loading state
     try {
       await addCarByExcel({
         variables: {
@@ -110,6 +117,7 @@ const AddCars = () => {
     }
   };
 
+  // Handler for file input change
   const handleFileChange = (info: any) => {
     const fileList = info.fileList;
     if (fileList.length > 0) {
@@ -119,10 +127,12 @@ const AddCars = () => {
     }
   };
 
+  // Generic handler for form input changes
   const handleChange = (value: any, fieldName: string) => {
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
   };
 
+  // Handler for image file changes
   const handleImageChange = (file: File, fieldName: string) => {
     const fileName = file.name;
 
@@ -155,6 +165,7 @@ const AddCars = () => {
     }
   };
 
+  // Handler for form submission
   const handleSubmit = async () => {
     if (!formData.primaryImage || formData.secondaryImages.length === 0) {
       message.warning(
@@ -165,7 +176,7 @@ const AddCars = () => {
 
     const { primaryImage, secondaryImages, ...carInput } = formData;
 
-    setLoading(true);
+    setLoading(true); // Set loading state
     try {
       await addCar({
         variables: {
@@ -177,10 +188,11 @@ const AddCars = () => {
     } catch (error) {
       console.error("Error adding car:", error);
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
   };
 
+  // Loading and error states for manufacturers
   if (loadingManufacturers) return <p>Loading manufacturers...</p>;
   if (errorManufacturers)
     return <p>Error fetching manufacturers: {errorManufacturers.message}</p>;
@@ -193,7 +205,7 @@ const AddCars = () => {
         <h1 className={styles.title}>Add Cars</h1>
         <Button
           className={styles.listButton}
-          onClick={() => router.push("/list-cars")}
+          onClick={() => router.push("/list-cars")} // Navigate to list cars page
         >
           List Cars
         </Button>
@@ -316,11 +328,11 @@ const AddCars = () => {
           className={styles.formItem}
         >
           <Upload
-            maxCount={1}
+            maxCount={1} // Allow only one primary image
             listType="picture"
             beforeUpload={(file) => {
               handleImageChange(file, "primaryImage");
-              return false;
+              return false; // Prevent automatic upload
             }}
             className={styles.uploadButton}
           >
@@ -334,14 +346,14 @@ const AddCars = () => {
         >
           <Upload
             listType="picture"
-            multiple
+            multiple // Allow multiple uploads for secondary images
             beforeUpload={(file) => {
               if (formData.secondaryImages.length < 3) {
                 handleImageChange(file, "secondaryImages");
-                return false;
+                return false; // Prevent automatic upload
               }
               message.warning("You can only upload up to 3 images.");
-              return false;
+              return false; // Prevent automatic upload
             }}
             className={styles.uploadButton}
           >
@@ -356,9 +368,9 @@ const AddCars = () => {
           <Upload
             listType="picture"
             multiple
-            accept=".xlsx, .xls"
-            beforeUpload={() => false}
-            onChange={handleFileChange}
+            accept=".xlsx, .xls" // Accept only Excel files
+            beforeUpload={() => false} // Prevent automatic upload
+            onChange={handleFileChange} // Handle file change
             className={styles.uploadButton}
           >
             <Button
@@ -379,7 +391,7 @@ const AddCars = () => {
           type="primary"
           htmlType="submit"
           loading={loading}
-          disabled={loading}
+          disabled={loading} // Disable button while loading
           className={styles.submitButton}
         >
           {loading ? "Submitting..." : "Submit"}
