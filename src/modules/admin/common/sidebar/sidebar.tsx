@@ -15,7 +15,7 @@ const Sidebar: FC<SidebarProps> = ({ isVisible, onClose }) => {
 
   const handleLogout = () => {
     // Clear user session or token
-    cookies.remove('adminToken'); // Assuming the token is stored in localStorage
+    cookies.remove('adminToken'); // Assuming the token is stored in cookies
 
     // Redirect to the login page
     router.push('/');
