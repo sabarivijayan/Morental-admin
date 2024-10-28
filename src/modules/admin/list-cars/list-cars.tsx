@@ -137,7 +137,7 @@ const ListCars: React.FC = () => {
         ];
 
         return (
-          <Dropdown menu={{ items: menuItems }}> // Dropdown for actions
+          <Dropdown menu={{ items: menuItems }}> 
             <Button>
               Actions <DownOutlined />
             </Button>
