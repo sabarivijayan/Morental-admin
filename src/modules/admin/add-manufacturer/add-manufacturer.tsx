@@ -117,7 +117,7 @@ const AddManufacturerForm: React.FC = () => {
             loading={loading} // Show loading spinner if loading
             className={styles.submitButton}
           >
-            {loading ? "Adding..." : "Add Manufacturer"} // Change button text based on loading state
+            {loading ? "Adding..." : "Add Manufacturer"} 
           </Button>
         </Form.Item>
       </Form>
