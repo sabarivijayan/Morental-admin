@@ -193,7 +193,7 @@ const ListCars: React.FC = () => {
             >
               {Array.from({ length: Number(selectedRentableCar?.quantity ?? 0) }).map((_, index) => (
                 <Select.Option key={index + 1} value={index + 1}>
-                  {index + 1} // Options based on available quantity
+                  {index + 1} {/* Options based on available quantity*/}
                 </Select.Option>
               ))}
             </Select>

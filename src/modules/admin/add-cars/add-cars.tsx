@@ -21,14 +21,14 @@ const { Option } = Select;
 const AddCars = () => {
   const [form] = Form.useForm(); // Form instance for handling form data
   const router = useRouter();
-  
+
   // Query to get manufacturers
   const {
     loading: loadingManufacturers,
     error: errorManufacturers,
     data: manufacturersData,
   } = useQuery<GetManufacturersResponse>(GET_MANUFACTURERS);
-  
+
   const [loading, setLoading] = useState(false); // State for loading indication
   const [file, setFile] = useState<File | null>(null); // State for uploaded Excel file
   const [formData, setFormData] = useState<FormData>({
@@ -54,7 +54,6 @@ const AddCars = () => {
   // Mutation for adding a car
   const [addCar] = useMutation(ADD_CARS, {
     onCompleted: () => {
-      // Reset form data upon successful submission
       setFormData({
         name: "",
         type: "",
@@ -69,8 +68,8 @@ const AddCars = () => {
         year: "",
       });
       Swal.fire("Success!", "Car has been added successfully.", "success");
-      form.resetFields(); // Reset the form fields
-      router.refresh(); // Refresh the page
+      form.resetFields();
+      router.refresh();
     },
     onError: (error) => {
       Swal.fire("Error!", error.message, "error");
@@ -104,7 +103,7 @@ const AddCars = () => {
       message.warning("Please select an Excel file to upload.");
       return;
     }
-    setLoading(true); // Set loading state
+    setLoading(true);
     try {
       await addCarByExcel({
         variables: {
@@ -121,7 +120,7 @@ const AddCars = () => {
   const handleFileChange = (info: any) => {
     const fileList = info.fileList;
     if (fileList.length > 0) {
-      setFile(fileList[0].originFileObj); // Store the selected Excel file
+      setFile(fileList[0].originFileObj);
     } else {
       setFile(null);
     }
@@ -176,7 +175,7 @@ const AddCars = () => {
 
     const { primaryImage, secondaryImages, ...carInput } = formData;
 
-    setLoading(true); // Set loading state
+    setLoading(true);
     try {
       await addCar({
         variables: {
@@ -188,7 +187,7 @@ const AddCars = () => {
     } catch (error) {
       console.error("Error adding car:", error);
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
 
@@ -205,12 +204,13 @@ const AddCars = () => {
         <h1 className={styles.title}>Add Cars</h1>
         <Button
           className={styles.listButton}
-          onClick={() => router.push("/list-cars")} // Navigate to list cars page
+          onClick={() => router.push("/list-cars")}
         >
           List Cars
         </Button>
       </div>
       <Form layout="vertical" onFinish={handleSubmit} className={styles.form}>
+        {/* Form fields for adding a single car */}
         <Form.Item
           label="Select Manufacturer"
           required
@@ -328,11 +328,11 @@ const AddCars = () => {
           className={styles.formItem}
         >
           <Upload
-            maxCount={1} // Allow only one primary image
+            maxCount={1}
             listType="picture"
             beforeUpload={(file) => {
               handleImageChange(file, "primaryImage");
-              return false; // Prevent automatic upload
+              return false;
             }}
             className={styles.uploadButton}
           >
@@ -346,21 +346,22 @@ const AddCars = () => {
         >
           <Upload
             listType="picture"
-            multiple // Allow multiple uploads for secondary images
+            multiple
             beforeUpload={(file) => {
               if (formData.secondaryImages.length < 3) {
                 handleImageChange(file, "secondaryImages");
-                return false; // Prevent automatic upload
+                return false;
               }
               message.warning("You can only upload up to 3 images.");
-              return false; // Prevent automatic upload
+              return false;
             }}
             className={styles.uploadButton}
           >
-            <Button>Click to Upload secondary Images</Button>
+            <Button>Click to Upload Secondary Images</Button>
           </Upload>
         </Form.Item>
 
+        {/* Separate Upload Excel Section */}
         <Form.Item
           label="Upload cars via Excel sheet"
           className={styles.formItem}
@@ -368,33 +369,41 @@ const AddCars = () => {
           <Upload
             listType="picture"
             multiple
-            accept=".xlsx, .xls" // Accept only Excel files
-            beforeUpload={() => false} // Prevent automatic upload
-            onChange={handleFileChange} // Handle file change
+            accept=".xlsx, .xls"
+            beforeUpload={() => false}
+            onChange={handleFileChange}
             className={styles.uploadButton}
           >
             <Button
-              icon={<UploadOutlined />} // Use Ant Design upload icon
+              icon={<UploadOutlined />}
               style={{
-                backgroundColor: "#217346", // Excel green color
+                backgroundColor: "#217346",
                 color: "#fff",
                 borderColor: "#217346",
-                fontWeight: "bold", // To give the button a solid look
+                fontWeight: "bold",
               }}
             >
               Select Excel File
             </Button>
           </Upload>
+          <Button
+            type="primary"
+            loading={loading}
+            onClick={handleExcelUpload}
+            className={styles.submitButton}
+            disabled={!file}
+          >
+            Upload Excel File
+          </Button>
         </Form.Item>
 
         <Button
           type="primary"
           htmlType="submit"
           loading={loading}
-          disabled={loading} // Disable button while loading
           className={styles.submitButton}
         >
-          {loading ? "Submitting..." : "Submit"}
+          Submit Car Details
         </Button>
       </Form>
     </div>

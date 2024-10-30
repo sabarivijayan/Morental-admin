@@ -5,7 +5,7 @@ import { Table, Spin, Result, Button, Tag } from "antd";
 import Cookies from "js-cookie";
 import styles from "./bookings-list.module.css";
 import { FETCH_ALL_BOOKINGS } from "@/graphql/queries/bookings";
-import { BOOKING_DELIVERY } from "@/graphql/mutations/bookings";
+import { BOOKING_DELIVERY, EXPORT_BOOKINGS_EXCEL, EXPORT_BOOKINGS_PDF } from "@/graphql/mutations/bookings";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -29,6 +29,10 @@ const BookingsList: React.FC = () => {
   });
 
   const [bookingDelivery] = useMutation(BOOKING_DELIVERY);
+
+  const [exportToExcel] = useMutation(EXPORT_BOOKINGS_EXCEL);
+
+  const [exportToPDF] = useMutation(EXPORT_BOOKINGS_PDF);
 
   useEffect(() => {
     if (token) {
@@ -102,27 +106,61 @@ const BookingsList: React.FC = () => {
     }
   };
 
-  // Function to generate PDF report of bookings
-  const generatePDF = () => {
-    const doc = new jsPDF();
+  const handlePDFExport = async () => {
+    try {
+      const { data } = await exportToPDF({
+        context: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      });
 
-    // Add title to the PDF
-    doc.text("Bookings Report", 20, 10);
+      if (data.exportBookingsPDF.status) {
+        const buffer = Buffer.from(data.exportBookingsPDF.data.buffer, 'base64');
+        const blob = new Blob([buffer], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = data.exportBookingsPDF.data.filename;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        message.error('Export failed: ' + data.exportBookingsPDF.message);
+      }
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      message.error('Failed to export PDF');
+    }
+  };
 
-    // Auto table generation
-    autoTable(doc, {
-      head: [['Car Name', 'Pickup Date', 'Dropoff Date', 'Total Price', 'Status']],
-      body: bookings.map(booking => [
-        booking.rentable?.car?.name || 'N/A',
-        new Date(booking.pickUpDate).toLocaleDateString(),
-        new Date(booking.dropOffDate).toLocaleDateString(),
-        `₹${booking.totalPrice}`,
-        booking.status === 'delivered' ? 'Delivered' : 'Pending'
-      ]),
-    });
-
-    // Save the PDF
-    doc.save("bookings_report.pdf");
+  const handleExcelExport = async () => {
+    try {
+      const { data } = await exportToExcel({
+        context: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      });
+  
+      if (data.exportBookingsExcel.status) {
+        const buffer = Buffer.from(data.exportBookingsExcel.data.buffer, 'base64');
+        const blob = new Blob([buffer], { 
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = data.exportBookingsExcel.data.filename;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        console.error('Export failed:', data.exportBookingsExcel.message);
+      }
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+    }
   };
 
   const columns = [
@@ -190,8 +228,11 @@ const BookingsList: React.FC = () => {
 
   return (
     <div className={styles.bookingList}>
-      <Button type="primary" onClick={generatePDF}>
+      <Button className={styles.pdfButton} type="primary" onClick={handlePDFExport}>
         Download PDF
+      </Button>
+      <Button type="primary" onClick={handleExcelExport}>
+        Download Excel
       </Button>
       <Table
         className={styles.table}
