@@ -48,7 +48,15 @@ const ListRentableCars: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const { loading, error, data, refetch } = useQuery(GET_RENTABLE_CARS);
+  const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
+    const { loading, error, data, refetch } = useQuery(GET_RENTABLE_CARS, {
+        variables: {
+            offset: (currentPage - 1) * pageSize,
+            limit: pageSize
+        }
+    });
   const { addCars } = useAddCarToTypesense();
 
   // Mutation handlers for deleting and updating rentable cars
@@ -109,11 +117,14 @@ const ListRentableCars: React.FC = () => {
   };
 
   // Effect to sync data with Typesense whenever new cars are fetched
-  useEffect(() => {
-    if (data?.getRentableCars) {
-      addCars(data.getRentableCars).catch(console.error);
-    }
-  }, [data?.getRentableCars]);
+  // Effect to sync data with Typesense whenever new cars are fetched
+useEffect(() => {
+  if (data?.getRentableCars?.rentableCars) {
+    addCars(data.getRentableCars.rentableCars).catch(console.error);
+  }
+}, [data?.getRentableCars]);
+
+  
 
   // Function to confirm deletion of a car
   const handleDelete = (id: string) => {
@@ -263,11 +274,19 @@ const ListRentableCars: React.FC = () => {
       <Table
         columns={columns}
         dataSource={
-          searchResults.length > 0 ? searchResults : data?.getRentableCars
+            searchResults.length > 0 
+                ? searchResults 
+                : data?.getRentableCars.rentableCars
         }
         rowKey="id"
-        pagination={{ pageSize: 10 }}
-      />
+        pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: data?.getRentableCars.totalCount || 0,
+            onChange: (page) => setCurrentPage(page),
+            showSizeChanger: false
+        }}
+    />
 
       {/* Rentable Car Update Modal */}
       <Modal

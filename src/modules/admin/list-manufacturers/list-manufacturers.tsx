@@ -11,29 +11,47 @@ import styles from './list-manufacturers.module.css';
 import EditManufacturer from '../edit-manufacturers/edit-manufacturers';
 
 const ManufacturerList: React.FC = () => {
-  const { loading, data, error, refetch } = useQuery(GET_MANUFACTURERS); // Fetch manufacturers
-  const [deleteManufacturer] = useMutation(DELETE_MANUFACTURER); // Mutation to delete a manufacturer
-  const [isEditingVisible, setIsEditingVisible] = useState<boolean>(false); // State for editing modal visibility
-  const [currentManufacturer, setCurrentManufacturer] = useState<Manufacturer | null>(null); // Current manufacturer to edit
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isEditingVisible, setIsEditingVisible] = useState<boolean>(false);
+  const [currentManufacturer, setCurrentManufacturer] = useState<Manufacturer | null>(null);
   const router = useRouter();
+  const pageSize = 10;
+
+  const { loading, data, error, refetch } = useQuery(GET_MANUFACTURERS, {
+    variables: {
+      offset: (currentPage - 1) * pageSize,
+      limit: pageSize,
+    },
+  });
+
+  const [deleteManufacturer] = useMutation(DELETE_MANUFACTURER);
 
   const handleEditing = (manufacturer: Manufacturer) => {
-    setCurrentManufacturer(manufacturer); // Set manufacturer for editing
-    setIsEditingVisible(true); // Show edit modal
+    setCurrentManufacturer(manufacturer);
+    setIsEditingVisible(true);
   };
 
   const handleDeleting = async (manufacturerId: string) => {
     try {
-      const { data } = await deleteManufacturer({ variables: { id: manufacturerId } }); // Delete manufacturer
+      const { data } = await deleteManufacturer({ variables: { id: manufacturerId } });
       if (data.deleteManufacturer) {
         message.success('Manufacturer deleted successfully');
-        refetch(); // Refresh the list after deletion
+        // Check if we need to go to previous page after deletion
+        const currentItems = data?.getManufacturers?.manufacturers?.length || 0;
+        if (currentItems === 1 && currentPage > 1) {
+          setCurrentPage(prev => prev - 1);
+        }
+        refetch();
       } else {
         message.error(`Error deleting manufacturer with Id: ${manufacturerId}`);
       }
     } catch (error) {
       message.error('An error occurred while trying to delete the manufacturer');
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const columns = [
@@ -46,17 +64,17 @@ const ManufacturerList: React.FC = () => {
       dataIndex: 'country',
     },
     {
-      title: 'Actions', // Column for action buttons
+      title: 'Actions',
       render: (_: any, record: Manufacturer) => (
         <div className={styles.actionsContainer}>
           <Button 
-            onClick={() => handleEditing(record)} // Edit action
+            onClick={() => handleEditing(record)}
             icon={<FontAwesomeIcon icon={faFilePen} />} 
             className={styles.editButton} 
           />
           <Popconfirm
-            title="Are you sure you want to delete this manufacturer?" // Confirmation for deletion
-            onConfirm={() => handleDeleting(record.id)} // Delete on confirmation
+            title="Are you sure you want to delete this manufacturer?"
+            onConfirm={() => handleDeleting(record.id)}
             okText="Yes"
             cancelText="No"
           >
@@ -71,28 +89,37 @@ const ManufacturerList: React.FC = () => {
   ];
 
   if (loading) {
-    return <Spin size="default" className={styles.spin} />; // Show loading spinner
+    return <Spin size="default" className={styles.spin} />;
   }
 
   if (error) {
-    return <p>Error fetching the manufacturers: {error.message}</p>; // Show error message
+    return <p>Error fetching the manufacturers: {error.message}</p>;
   }
+
+  const manufacturers = data?.getManufacturers?.manufacturers || [];
+  const totalCount = data?.getManufacturers?.totalCount || 0;
 
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Manufacturers List</h1>
       <Button 
-        onClick={() => router.push('/add-manufacturer')} // Navigate to add manufacturer page
+        onClick={() => router.push('/add-manufacturer')}
         className={styles.addButton}
       >
         Add Manufacturer
       </Button>
 
       <Table
-        dataSource={data?.getManufacturers?.length ? data.getManufacturers : []} // Provide data to the table
+        dataSource={manufacturers}
         columns={columns}
         rowKey="id"
-        pagination={{ pageSize: 10 }}
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          total: totalCount,
+          onChange: handlePageChange,
+          showSizeChanger: false,
+        }}
         locale={{
           emptyText: <Empty description="No manufacturers available. Click 'Add Manufacturer' to add new entries." />,
         }}
@@ -102,8 +129,8 @@ const ManufacturerList: React.FC = () => {
       {isEditingVisible && currentManufacturer && (
         <EditManufacturer
           visible={isEditingVisible}
-          onClose={() => setIsEditingVisible(false)} // Close edit modal
-          manufacturer={currentManufacturer} // Pass current manufacturer to edit
+          onClose={() => setIsEditingVisible(false)}
+          manufacturer={currentManufacturer}
         />
       )}
     </div>

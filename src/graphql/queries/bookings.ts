@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const FETCH_ALL_BOOKINGS = gql`
-  query FetchAllBookings {
-    fetchAllBookings {
+  query FetchAllBookings($page: Int, $limit: Int) {
+    fetchAllBookings(page: $page, limit: $limit) {
       status
       message
       data {
@@ -42,6 +42,13 @@ export const FETCH_ALL_BOOKINGS = gql`
             year
           }
         }
+      }
+      pagination {
+        total
+        currentPage
+        totalPages
+        hasNextPage
+        hasPreviousPage
       }
     }
   }

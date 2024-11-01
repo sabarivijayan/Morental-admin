@@ -18,11 +18,19 @@ import styles from "./list-cars.module.css";
 
 const ListCars: React.FC = () => {
   const router = useRouter();
-  const [selectedRentableCar, setSelectedRentableCar] = useState<Car | null>(null); // State to hold selected car for rental
-  const [pricePerDay, setPricePerDay] = useState<number | null>(null); // State for price per day
-  const [availableQuantity, setAvailableQuantity] = useState<number | null>(null); // State for available quantity
+  const [selectedRentableCar, setSelectedRentableCar] = useState<Car | null>(null);
+  const [pricePerDay, setPricePerDay] = useState<number | null>(null);
+  const [availableQuantity, setAvailableQuantity] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
-  const { loading, error, data, refetch } = useQuery(GET_CARS); // Fetch cars using GraphQL query
+  const { loading, error, data, refetch } = useQuery(GET_CARS, {
+    variables: {
+      offset: (currentPage - 1) * pageSize,
+      limit: pageSize
+    }
+  });
+
   const [deleteCar] = useMutation(DELETE_CAR, { // Mutation to delete a car
     onCompleted: () => refetch(), // Refetch cars after deletion
     onError: (err) => Swal.fire("Error!", err.message, "error"), // Show error on deletion failure
@@ -151,7 +159,10 @@ const ListCars: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Car List</h1>
-        <Button className={styles.addCarButton} onClick={() => router.push("add-cars")}>
+        <Button 
+          className={styles.addCarButton} 
+          onClick={() => router.push("add-cars")}
+        >
           Add Car
         </Button>
       </div>
@@ -159,9 +170,16 @@ const ListCars: React.FC = () => {
       <div className={styles.tableContainer}>
         <Table
           columns={columns}
-          dataSource={data?.getCars || []} // Provide data to the table
+          dataSource={data?.getCars.cars || []}
           rowKey="id"
-          locale={{ emptyText: "No cars available. Please add new cars!" }} // Empty state message
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: data?.getCars.total || 0,
+            onChange: (page) => setCurrentPage(page),
+            showSizeChanger: false
+          }}
+          locale={{ emptyText: "No cars available. Please add new cars!" }}
         />
       </div>
 

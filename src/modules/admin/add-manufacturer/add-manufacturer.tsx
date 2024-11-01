@@ -92,7 +92,7 @@ const AddManufacturerForm: React.FC = () => {
         </Form.Item>
 
         <Form.Item
-          label="Country" // Label for country selection
+          label="Country of Origin" // Label for country selection
           name="country" // Name of the form field
           rules={[{ required: true, message: "Please select a country!" }]} // Validation rules
           className={styles.formItem}

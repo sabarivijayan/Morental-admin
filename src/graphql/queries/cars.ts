@@ -1,22 +1,26 @@
 import { gql } from "@apollo/client";
 
 export const GET_CARS = gql`
-  query GetCars {
-    getCars {
-      id
-      name
-      type
-      description
-      transmissionType
-      fuelType
-      numberOfSeats
-      quantity
-      primaryImageUrl
-      secondaryImagesUrls
-      year
-      manufacturer {
+  query GetCars($offset: Int, $limit: Int) {
+    getCars(pagination: { offset: $offset, limit: $limit }) {
+      cars {
+        id
         name
+        type
+        description
+        transmissionType
+        fuelType
+        numberOfSeats
+        quantity
+        primaryImageUrl
+        secondaryImagesUrls
+        year
+        manufacturer {
+          name
+        }
       }
+      total
+      hasMore
     }
   }
 `;

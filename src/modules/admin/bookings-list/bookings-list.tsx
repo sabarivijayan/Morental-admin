@@ -1,20 +1,24 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useLazyQuery, useMutation } from "@apollo/client";
-import { Table, Spin, Result, Button, Tag } from "antd";
+import { Table, Spin, Result, Button, Tag, message } from "antd";
 import Cookies from "js-cookie";
 import styles from "./bookings-list.module.css";
 import { FETCH_ALL_BOOKINGS } from "@/graphql/queries/bookings";
 import { BOOKING_DELIVERY, EXPORT_BOOKINGS_EXCEL, EXPORT_BOOKINGS_PDF } from "@/graphql/mutations/bookings";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+
 
 const BookingsList: React.FC = () => {
   const token = Cookies.get("adminToken");
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
-  // Lazy query to fetch all bookings
   const [fetchAllBookings, { loading, data, error }] = useLazyQuery(FETCH_ALL_BOOKINGS, {
+    variables: {
+      page: currentPage,
+      limit: pageSize
+    },
     onCompleted: (data) => {
       if (!data.fetchAllBookings.status) {
         setFetchError(data.fetchAllBookings.message);
@@ -237,9 +241,28 @@ const BookingsList: React.FC = () => {
       <Table
         className={styles.table}
         columns={columns}
-        dataSource={bookings}
+        dataSource={data?.fetchAllBookings?.data || []}
         rowKey={(record: any) => record.id}
-        pagination={{ pageSize: 10 }}
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          total: data?.fetchAllBookings?.pagination?.total || 0,
+          onChange: (page, pageSize) => {
+            setCurrentPage(page);
+            setPageSize(pageSize);
+            fetchAllBookings({
+              variables: {
+                page,
+                limit: pageSize
+              },
+              context: {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            });
+          },
+        }}
       />
     </div>
   );

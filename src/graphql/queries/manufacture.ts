@@ -1,12 +1,14 @@
 import { gql } from '@apollo/client';
 
 export const GET_MANUFACTURERS = gql`
-    query{
-        getManufacturers{
-            id
-            name
-            country
-        }
+  query GetManufacturers($offset: Int, $limit: Int) {
+    getManufacturers(offset: $offset, limit: $limit) {
+      manufacturers {
+        id
+        name
+        country
+      }
+      totalCount
     }
+  }
 `;
-
